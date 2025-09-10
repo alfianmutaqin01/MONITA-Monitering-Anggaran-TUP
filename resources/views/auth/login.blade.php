@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,49 +26,49 @@
         }
 
         .login-container {
+            width: 85%;
+            height: 80vh;
             display: flex;
-            flex-direction: row;
-            width: 900px;
-            max-width: 95%;
             border-radius: var(--border-radius);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             overflow: hidden;
-            background-color: #fff;
+            background-color: #f8f9fb;
         }
 
-        /* Bagian gambar dengan overlay Monita */
+        /* kiri */
         .login-image {
-            flex: 1;
-            background: url('{{ asset('images/monita-background.png') }}') no-repeat center center;
+            flex: 3;
+            background: url('{{ asset('images/login.png') }}') no-repeat center center;
             background-size: cover;
             position: relative;
         }
         .login-image .overlay {
-            background-color: rgba(149, 25, 35, 0.85);
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            text-align: center;
+            color: #ffffff;
             padding: 20px;
         }
+
         .login-image .overlay h1 {
+
             font-weight: 700;
-            font-size: 2.5rem;
+            font-size: 5rem;
             margin-bottom: 0.5rem;
         }
+
         .login-image .overlay p {
             margin: 0.2rem 0;
         }
 
         /* Form login */
+        /* kanan */
         .login-form-container {
             flex: 1;
-            padding: 40px 30px;
+            padding: 0px 40px;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -113,16 +114,18 @@
             .login-container {
                 flex-direction: column;
             }
+
             .login-image {
                 height: 200px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="login-container">
         <!-- Bagian kiri: gambar dan overlay -->
-        <div class="login-image">
+        <div class="login-image col-8">
             <div class="overlay">
                 <h1>MONITA</h1>
                 <p>Monitoring Anggaran</p>
@@ -131,9 +134,9 @@
         </div>
 
         <!-- Bagian kanan: form login -->
-        <div class="login-form-container">
+        <div class="login-form-container col-4">
             <div class="logo text-center">
-                <img src="{{ asset('images/telkom-logo.png') }}" alt="Telkom University Logo">
+                <img src="{{ asset('images/logo.png') }}" alt="Telkom University Logo">
             </div>
             <h2 class="text-center">Selamat Datang</h2>
             <form action="{{ route('login') }}" method="POST">
@@ -160,4 +163,5 @@
         </div>
     </div>
 </body>
+
 </html>

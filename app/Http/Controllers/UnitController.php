@@ -1,14 +1,23 @@
 <?php
+
 namespace App\Http\Controllers;
 
-public function show($name)
+use Illuminate\Http\Request;
+
+class UnitController extends Controller
 {
-    $user = session('user_data');
+    public function show($kode)
+    {
+        $user = session('user_data');
 
-    // jika bukan admin dan bukan unit yang sesuai
-    if ($user['role'] !== 'admin' && $user['nama_pp'] !== $name) {
-        abort(403, 'Anda tidak memiliki akses ke unit ini.');
+        // Cek akses: admin boleh semua, user hanya unit sendiri
+        if ($user['role'] !== 'admin' && $user['kode_pp'] !== $kode) {
+            abort(403, 'Anda tidak memiliki akses ke unit ini.');
+        }
+
+        return view('main.unit', [
+            'kode' => $kode,
+            'nama' => $user['nama_pp'],
+        ]);
     }
-
-    return view('main.unit', compact('name'));
 }

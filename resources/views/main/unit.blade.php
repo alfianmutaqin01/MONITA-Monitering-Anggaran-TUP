@@ -4,7 +4,6 @@
 
 @section('content')
     <div class="">
-        <p>Selamat datang, {{ session('user_data.nama_pp') ?? session('user_data.username') }} </p>
         <h2 class="mb-4">Detail Anggaran</h2>
 
         <div class="form-section col-2">
