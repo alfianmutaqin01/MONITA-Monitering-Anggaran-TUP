@@ -20,6 +20,13 @@ Route::middleware(['auth.spreadsheet'])->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
     Route::get('/unit/{kode}', [UnitController::class, 'show'])->name('unit.show');
     Route::get('/summary/triwulan/{triwulan}', [SummaryController::class, 'show'])->name('trivulan');
+    Route::get('/laporan', function () {
+        return view('main.laporan');
+    })->name('laporan');
+
+    Route::get('/pengaturan', function () {
+        return view('main.pengaturan');
+    })->name('pengaturan');
 });
 
 // // Dashboard, semua user bisa akses

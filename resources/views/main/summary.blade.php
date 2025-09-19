@@ -3,7 +3,7 @@
 @section('title', "Summary Anggaran Triwulan $triwulan")
 
 @section('content')
-<div class="container py-4">
+<div class="container-flex">
     <h3>Summary Anggaran Triwulan {{ $triwulan }}</h3>
     <p class="text-muted">Ringkasan data anggaran dari Google Sheets</p>
 
