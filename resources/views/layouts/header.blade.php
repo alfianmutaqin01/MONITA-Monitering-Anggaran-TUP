@@ -32,7 +32,7 @@
                 }
             @endphp
 
-            <span class="ms-3 h4 mb-0 d-none d-md-inline-flex align-items-center">
+            <span class="ms-2 h4 mb-0 d-none d-md-inline-flex align-items-center">
                 <i class="{{ $icon }} me-2"></i> {{ $greeting }}, {{ session('user_data.nama_pp') }}
             </span>
         </div>
@@ -44,20 +44,18 @@
                 <li class="dropdown pc-h-item header-user-profile">
                     <a class="pc-head-link head-link-primary dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown"
                         href="#" role="button" aria-haspopup="false" aria-expanded="false">
-                        <div class="user-avtar bg-primary text-white fw-bold me-2">
-                            {{ substr(session('user_data.Nama PP'), 0, 1) }}
-                        </div>
                         <span class="d-none d-sm-inline">{{ session('user_data.username') }}</span>
                     </a>
                     <div class="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown">
                         <div class="dropdown-header">
-                            <h4>Selamat Datang, {{ session('user_data.Nama PP') }}!</h4>
+                            <h4>Selamat Datang, {{ session('user_data.nama_pp') }}!</h4>
                             <p class="text-muted">
-                                {{ session('user_data.role') === 'admin' ? 'Administrator' : 'Pengguna Unit' }}</p>
+                                {{ session('user_data.role') === 'admin' ? 'Administrator' : 'Pengguna Unit' }}
+                            </p>
                             <hr />
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
-                                <button type="submit" class="dropdown-item">
+                                <button type="submit" class="dropdown-item head-link-primary">
                                     <i class="ti ti-logout me-2"></i>
                                     <span>Logout</span>
                                 </button>

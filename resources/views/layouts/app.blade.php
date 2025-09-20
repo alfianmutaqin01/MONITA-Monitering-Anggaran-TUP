@@ -11,7 +11,7 @@
     <meta name="author" content="MONITA Dev Team" />
 
     <!-- Favicon -->
-    <link rel="icon" href="{{ asset('berry/assets/images/favicon.svg') }}" type="image/x-icon" />
+    <link rel="icon" href="{{ asset('images/icon.png') }}" type="image/x-icon" />
 
     <!-- Fonts -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
@@ -30,19 +30,12 @@
     <link rel="stylesheet" href="{{ asset('berry/assets/css/style.css') }}" id="main-style-link" />
     <link rel="stylesheet" href="{{ asset('berry/assets/css/style-preset.css') }}" />
     <style>
-        :root {
-            --telkom-red: #d90000;
-            --telkom-dark-red: #b30000;
-            --telkom-black: #000000;
-            --telkom-gray: #4a4a4a;
-            --telkom-light-gray: #f5f5f5;
-            --telkom-white: #ffffff;
-        }
-        .pc-sidebar .nav-link.active {
+        /* .pc-sidebar .nav-link.active {
             background-color: #f0f0f0;
             color: #212529;
             border-radius: 8px;
-        }
+        } */
+         
     </style>
 </head>
 

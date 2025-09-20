@@ -2,8 +2,9 @@
     <div class="navbar-wrapper">
         <!-- Logo -->
         <div class="m-header">
+            <img src="{{ asset('public/images/Logo.png') }}" alt="Logo" class="logo logo-lg" />
             <a href="{{ route('dashboard') }}" class="b-brand text-primary">
-                <img src="{{ asset('berry/assets/images/logo-dark.svg') }}" alt="Logo" class="logo logo-lg" />
+                <img src="{{ asset('../../../public/images/Logo.png') }}" alt="Logo" class="logo logo-lg" />
             </a>
         </div>
 
@@ -52,7 +53,7 @@
                 @if($userRole === 'admin')
                     <li class="pc-item pc-hasmenu">
                         <a href="#!" class="pc-link">
-                            <span class="pc-micon"><i class="ti ti-graph-up"></i></span>
+                            <span class="pc-micon"><i class="ti ti-report-money"></i></span>
                             <span class="pc-mtext">Summary Anggaran</span>
                             <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
                         </a>
