@@ -2,9 +2,9 @@
     <div class="navbar-wrapper">
         <!-- Logo -->
         <div class="m-header">
-            <img src="{{ asset('public/images/Logo.png') }}" alt="Logo" class="logo logo-lg" />
+            {{-- <img src="{{ asset('public/images/Logo.png') }}" alt="Logo" class="logo logo-lg" /> --}}
             <a href="{{ route('dashboard') }}" class="b-brand text-primary">
-                <img src="{{ asset('../../../public/images/Logo.png') }}" alt="Logo" class="logo logo-lg" />
+                <img src="{{ asset('images/icon.png') }}" alt="Logo" class="logo logo-lg" />
             </a>
         </div>
 
@@ -81,7 +81,7 @@
                     <a class="pc-link {{ request()->routeIs('pengaturan') ? 'active' : '' }}"
                         href="{{ route('pengaturan') }}">
                         <span class="pc-micon"><i class="ti ti-settings"></i></span>
-                        <span class="pc-mtext">Pengaturan</span>
+                        <span class="pc-mtext">Pengaturan Akun</span>
                     </a>
                 </li>
             </ul>

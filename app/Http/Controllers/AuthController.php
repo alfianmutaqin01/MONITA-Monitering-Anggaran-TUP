@@ -9,12 +9,11 @@ use Exception;
 class AuthController extends Controller
 {
     protected $spreadsheetId;
-    protected $range = 'Users!A2:F'; // data mulai dari baris 2
+    protected $range = 'users!A2:F'; 
 
     public function __construct()
     {
-        // Ambil spreadsheet id dari environment (set di file .env)
-        $this->spreadsheetId = env('GOOGLE_SPREADSHEET_ID', 'ISI_DENGAN_SPREADSHEET_ID');
+        $this->spreadsheetId = env('GOOGLE_SPREADSHEET_ID', '');
     }
 
     public function showLogin()
@@ -43,11 +42,10 @@ class AuthController extends Controller
 {
     $service = $this->getGoogleSheetService();
 
-    // gunakan nama tab 'users' (huruf kecil semua)
     $response = $service->spreadsheets_values->get(
-        $this->spreadsheetId,
-        'users!A2:F'
-    );
+    $this->spreadsheetId,
+    $this->range
+);
 
     $values = $response->getValues();
 

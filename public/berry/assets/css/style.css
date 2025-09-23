@@ -17493,8 +17493,8 @@ pre[class*="language-"] > code {
     align-items: center;
 }
 .pc-header .dropdown-user-profile .dropdown-item:hover {
-    background: #e0cffc;
-    color: #6610f2;
+    background: #f3dddd;
+    color: #a31d1d;
 }
 .pc-header .dropdown-user-profile .upgradeplan-block {
     position: relative;

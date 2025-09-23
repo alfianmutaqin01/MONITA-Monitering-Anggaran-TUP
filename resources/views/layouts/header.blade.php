@@ -18,16 +18,16 @@
                 $greeting = '';
 
                 if ($hour >= 4 && $hour < 11) {
-                    $icon = 'class ti ti-sun';
+                    $icon = 'class ti ti-sunrise';
                     $greeting = 'Selamat Pagi';
                 } elseif ($hour >= 11 && $hour < 16) {
-                    $icon = 'ti ti-sun-high';
+                    $icon = 'ti ti-sun';
                     $greeting = 'Selamat Siang';
                 } elseif ($hour >= 16 && $hour < 21) {
-                    $icon = 'ti ti-cloud-moon';
+                    $icon = 'ti ti-sunset';
                     $greeting = 'Selamat Sore';
                 } else {
-                    $icon = 'ti ti-moon';
+                    $icon = 'ti ti-moon-stars';
                     $greeting = 'Selamat Malam';
                 }
             @endphp

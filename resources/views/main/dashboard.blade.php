@@ -12,19 +12,7 @@
                     <div class="row">
                         <div class="col">
                             <div class="avtar avtar-lg">
-                                <i class="text-white ti ti-credit-card"></i>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="btn-group">
-                                <a href="#" class="avtar avtar-s bg-secondary text-white dropdown-toggle arrow-none"
-                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="ti ti-dots"></i>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><button class="dropdown-item">Import Card</button></li>
-                                    <li><button class="dropdown-item">Export</button></li>
-                                </ul>
+                                <i class="text-white ti ti-report-money"></i>
                             </div>
                         </div>
                     </div>
@@ -32,7 +20,7 @@
                         1350
                         <i class="ti ti-arrow-up-right-circle opacity-50"></i>
                     </span>
-                    <p class="mb-0 opacity-50">Total Pending Orders</p>
+                    <p class="mb-0 opacity-75">Triwulan 1</p>
                 </div>
             </div>
         </div>
@@ -44,7 +32,7 @@
                     <div class="row">
                         <div class="col">
                             <div class="avtar avtar-lg">
-                                <i class="text-white ti ti-credit-card"></i>
+                                <i class="text-white ti ti-report-money"></i>
                             </div>
                         </div>
                     </div>
@@ -52,7 +40,7 @@
                         1350
                         <i class="ti ti-arrow-up-right-circle opacity-50"></i>
                     </span>
-                    <p class="mb-0 opacity-50">Total Pending Orders</p>
+                    <p class="mb-0 opacity-75">Triwulan 2</p>
                 </div>
             </div>
         </div>
@@ -64,7 +52,7 @@
                     <div class="row">
                         <div class="col">
                             <div class="avtar avtar-lg">
-                                <i class="text-white ti ti-credit-card"></i>
+                                <i class="text-white ti ti-report-money"></i>
                             </div>
                         </div>
                     </div>
@@ -72,7 +60,7 @@
                         1350
                         <i class="ti ti-arrow-up-right-circle opacity-50"></i>
                     </span>
-                    <p class="mb-0 opacity-50">Total Pending Orders</p>
+                    <p class="mb-0 opacity-75">Triwulan 3</p>
                 </div>
             </div>
         </div>
@@ -84,7 +72,7 @@
                     <div class="row">
                         <div class="col">
                             <div class="avtar avtar-lg">
-                                <i class="text-white ti ti-credit-card"></i>
+                                <i class="text-white ti ti-report-money"></i>
                             </div>
                         </div>
 
@@ -98,7 +86,7 @@
                                         RP. 135.000
                                         <i class="ti ti-arrow-up-right-circle opacity-50"></i>
                                     </span>
-                                    <p class="mb-0 opacity-50">Total Earning</p>
+                                    <p class="mb-0 opacity-75">Triwulan 4</p>
                                 </div>
                             </div>
                         </div>
@@ -128,46 +116,46 @@
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5>Daftar Anggaran Unit</h5>
-                {{-- <div class="header-action d-flex align-items-center">
-                    <button class="btn btn-sm btn-outline-danger me-2">
-                        <i class="ti ti-rotate-clockwise me-1"></i> Muat Ulang
-                    </button>
-                    <button class="btn btn-sm btn-danger">
-                        <i class="ti ti-plus me-1"></i> Tambah Anggaran
-                    </button>
-                </div> --}}
-            </div>
-        </div>
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="input-group" style="width: 300px;">
-                    <span class="input-group-text"><i class="ti ti-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Cari anggaran...">
-                </div>
-                <div class="d-flex align-items-center">
-                    <select class="form-select me-2" style="width: 150px;">
-                        <option selected>Status</option>
-                        <option>Aktif</option>
-                        <option>Pending</option>
-                        <option>Tidak Aktif</option>
-                    </select>
-                    <button class="btn btn-outline-danger">
+                <div class="header-action d-flex align-items-center">
+                    <button class="btn btn-outline-secondary">
                         <i class="ti ti-database-export me-1"></i> Ekspor Data
                     </button>
                 </div>
             </div>
-            <div class="table-responsive card">
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="input-group">
+                    <select class="form-select me-2" style="width: 150px;">
+                        <option selected>Periode</option>
+                        <option>Terwulan 1</option>
+                        <option>Terwulan 2</option>
+                        <option>Terwulan 3</option>
+                        <option>Terwulan 4</option>
+                    </select>
+                    <select class="form-select me-2" style="width: 150px;">
+                        <option selected>Type</option>
+                        <option>Aktif</option>
+                        <option>Pending</option>
+                        <option>Tidak Aktif</option>
+                    </select>
+                    <button class="btn btn-outline-secondary">
+                        <i class="ti ti-filter me-1"></i> Terapkan Filter
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive card table-primary">
                 <table class="table table-striped">
                     <thead class="bg-secondary">
-                        <tr class="text-gray-100">
-                            <th class="text-gray-100">No</th>
-                            <th>Kode PP</th>
-                            <th>Nama PP</th>
-                            <th>Anggaran</th>
-                            <th>Realisasi</th>
-                            <th>Sisa</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
+                        <tr>
+                            <th class="text-white">No</th>
+                            <th class="text-white">Kode PP</th>
+                            <th class="text-white">Nama PP</th>
+                            <th class="text-white">Anggaran</th>
+                            <th class="text-white">Realisasi</th>
+                            <th class="text-white">Sisa</th>
+                            <th class="text-white">Status</th>
+                            <th class="text-white">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -222,10 +210,11 @@
                     <ul class="pagination">
                         <li class="paginate_button page-item previous disabled"><a href="#" class="page-link">Previous</a>
                         </li>
-                        <li class="paginate_button page-item active"><a href="#" class="page-link">1</a></li>
+                        <li class="paginate_button page-item active"><a href="#" class="page-link text-white">1</a></li>
                         <li class="paginate_button page-item "><a href="#" class="page-link">2</a></li>
                         <li class="paginate_button page-item "><a href="#" class="page-link">3</a></li>
-                        <li class="paginate_button page-item next"><a href="#" class="page-link">Next</a></li>
+                        <li class="paginate_button page-item next"><a href="#"
+                                class="page-link text-white">Next</a></li>
                     </ul>
                 </div>
             </div>
@@ -235,7 +224,7 @@
     <div class="">
         <div class="form-section">
             <h3>Data Anggaran Terbaru</h3>
-            <div class="table-responsive">
+            <div class="table-primary table-responsive card">
                 <table class="table table-striped">
                     <thead>
                         <tr>
@@ -278,7 +267,7 @@
                     <div class="row">
                         <div class="col">
                             <div class="avtar avtar-lg">
-                                <i class="text-white ti ti-credit-card"></i>
+                                <i class="text-white ti ti-report-money"></i>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -298,7 +287,7 @@
                         1350
                         <i class="ti ti-arrow-up-right-circle opacity-50"></i>
                     </span>
-                    <p class="mb-0 opacity-50">Total Pending Orders</p>
+                    <p class="mb-0 opacity-50">Triwulan 4</p>
                 </div>
             </div>
         </div>
@@ -310,7 +299,7 @@
                     <div class="row">
                         <div class="col">
                             <div class="avtar avtar-lg">
-                                <i class="text-white ti ti-credit-card"></i>
+                                <i class="text-white ti ti-report-money"></i>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -374,7 +363,7 @@
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="avtar avtar-lg">
-                            <i class="text-white ti ti-credit-card"></i>
+                            <i class="text-white ti ti-report-money"></i>
                         </div>
                         <div class="ms-2">
                             <h4 class="text-white mb-1">$203k</h4>
@@ -389,7 +378,7 @@
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="avtar avtar-lg bg-light-warning">
-                            <i class="text-warning ti ti-credit-card"></i>
+                            <i class="text-warning ti ti-report-money"></i>
                         </div>
                         <div class="ms-2">
                             <h4 class="mb-1">$203k</h4>
