@@ -47,6 +47,7 @@
                             </li>
                         @endif
                     </ul>
+
                 </li>
 
                 <!-- Summary Anggaran -->
@@ -60,9 +61,10 @@
                         <ul class="pc-submenu">
                             @for ($i = 1; $i <= 4; $i++)
                                 <li class="pc-item">
-                                    <a class="pc-link" href="{{ route('trivulan', $i) }}">Trivulan {{ $i }}</a>
+                                    <a class="pc-link" href="{{ route('summary.triwulan', $i) }}">Triwulan {{ $i }}</a>
                                 </li>
                             @endfor
+
                         </ul>
                     </li>
                 @endif

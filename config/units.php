@@ -1,46 +1,5 @@
 <?php
-
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-
-class UnitController extends Controller
-{
-    public function show($kode)
-    {
-        $user = session('user_data');
-
-        // Admin bisa akses semua unit
-        if ($user['role'] === 'admin') {
-            $namaUnit = $this->getUnitName($kode);
-        } 
-        // User hanya bisa akses unit sendiri
-        elseif ($user['kode_pp'] === $kode) {
-            $namaUnit = $user['nama_pp'];
-        } 
-        else {
-            abort(403, 'Anda tidak memiliki akses ke unit ini.');
-        }
-
-        // View sesuai folder unit
-        $viewPath = 'main.unit.' . strtolower($kode);
-
-        if (!view()->exists($viewPath)) {
-            abort(404, "Halaman untuk unit {$kode} tidak ditemukan.");
-        }
-
-        return view($viewPath, [
-            'kode' => $kode,
-            'nama' => $namaUnit,
-        ]);
-    }
-
-    /**
-     * Mapping kode unit ke nama unit (untuk admin)
-     */
-    private function getUnitName($kode)
-    {
-        $allUnits = [
+return [
     'LAB' => 'Bagian Laboratorium',
     'AKA' => 'Bagian Pelayanan Akademik Pusat',
     'INV' => 'Bagian Sentra Inovasi',
@@ -74,9 +33,4 @@ class UnitController extends Controller
     'BME' => 'Program Studi S1 Teknik Biomedis',
     'TEL' => 'Program Studi S1 Teknik Elektro',
     'TTS' => 'Program Studi S1 Teknik Telekomunikasi',
-    ];
-
-
-        return $allUnits[$kode] ?? $kode;
-    }
-}
+];

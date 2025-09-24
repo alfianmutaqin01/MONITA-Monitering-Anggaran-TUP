@@ -20,18 +20,24 @@ class AppServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      */
     public function boot(): void
-{
-    View::composer('*', function ($view) {
-        $userData = session('user_data') ?? [];
-        $view->with('userRole', $userData['role'] ?? 'user')
-             ->with('userUnitKode', $userData['kode_pp'] ?? '')
-             ->with('userUnitNama', $userData['nama_pp'] ?? '')
-             ->with('allUnits', [
-                'LAB' => 'Bagian Laboratorium',
-                'AKA' => 'Bagian Pelayanan Akademik Pusat',
-                'INV' => 'Bagian Sentra Inovasi',
-                // dst...
-             ]);
-    });
-}
+    {
+        // Share data ke semua view
+        View::composer('*', function ($view) {
+            // Ambil daftar unit dari config/units.php
+            $allUnits = config('units', []);
+
+            // Ambil data user dari session
+            $userData = session('user_data', []);
+            $userRole = session('user_role', 'user');
+            $userUnitKode = $userData['kode_pp'] ?? null;
+            $userUnitNama = $userData['nama_pp'] ?? null;
+
+            $view->with([
+                'allUnits'     => $allUnits,
+                'userRole'     => $userRole,
+                'userUnitKode' => $userUnitKode,
+                'userUnitNama' => $userUnitNama,
+            ]);
+        });
+    }
 }

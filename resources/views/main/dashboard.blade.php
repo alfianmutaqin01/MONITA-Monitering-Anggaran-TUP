@@ -109,15 +109,13 @@
                 </div>
             </div>
         </div>
-
-
     </div>
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
                 <h5>Daftar Anggaran Unit</h5>
                 <div class="header-action d-flex align-items-center">
-                    <button class="btn btn-outline-secondary">
+                    <button class="btn btn-secondary">
                         <i class="ti ti-database-export me-1"></i> Ekspor Data
                     </button>
                 </div>
@@ -126,7 +124,7 @@
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div class="input-group">
-                    <select class="form-select me-2" style="width: 150px;">
+                    <select class="form-select me-2 border-hover-secondary" style="width: 150px;">
                         <option selected>Periode</option>
                         <option>Terwulan 1</option>
                         <option>Terwulan 2</option>
@@ -135,11 +133,13 @@
                     </select>
                     <select class="form-select me-2" style="width: 150px;">
                         <option selected>Type</option>
-                        <option>Aktif</option>
-                        <option>Pending</option>
-                        <option>Tidak Aktif</option>
+                        <option>ALL</option>
+                        <option>OPERASIONAL</option>
+                        <option>BANG</option>
+                        <option>REMUN</option>
+                        <option>NTF</option>
                     </select>
-                    <button class="btn btn-outline-secondary">
+                    <button class="btn btn-secondary">
                         <i class="ti ti-filter me-1"></i> Terapkan Filter
                     </button>
                 </div>
@@ -213,8 +213,7 @@
                         <li class="paginate_button page-item active"><a href="#" class="page-link text-white">1</a></li>
                         <li class="paginate_button page-item "><a href="#" class="page-link">2</a></li>
                         <li class="paginate_button page-item "><a href="#" class="page-link">3</a></li>
-                        <li class="paginate_button page-item next"><a href="#"
-                                class="page-link text-white">Next</a></li>
+                        <li class="paginate_button page-item next"><a href="#" class="page-link">Next</a></li>
                     </ul>
                 </div>
             </div>
@@ -229,7 +228,7 @@
                     <thead>
                         <tr>
                             <th>Unit</th>
-                            <th>Trivulan</th>
+                            <th>Triwulan</th>
                             <th>Jumlah</th>
                             <th>Status</th>
                         </tr>

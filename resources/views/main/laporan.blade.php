@@ -19,21 +19,21 @@
                 </div>
 
                 <div class="mb-3">
-                    <select class="form-select" id="trivulanSelect">
-                        <option selected>Pilih trivulan...</option>
-                        <option value="1">Trivulan 1</option>
-                        <option value="2">Trivulan 2</option>
-                        <option value="3">Trivulan 3</option>
-                        <option value="4">Trivulan 4</option>
+                    <select class="form-select" id="TriwulanSelect">
+                        <option selected>Pilih Triwulan...</option>
+                        <option value="1">Triwulan 1</option>
+                        <option value="2">Triwulan 2</option>
+                        <option value="3">Triwulan 3</option>
+                        <option value="4">Triwulan 4</option>
                     </select>
                 </div>
                 <div class="mb-3">
-                    <select class="form-select" id="trivulanSelect">
-                        <option selected>Pilih trivulan...</option>
-                        <option value="1">Trivulan 1</option>
-                        <option value="2">Trivulan 2</option>
-                        <option value="3">Trivulan 3</option>
-                        <option value="4">Trivulan 4</option>
+                    <select class="form-select" id="TriwulanSelect">
+                        <option selected>Pilih Triwulan...</option>
+                        <option value="1">Triwulan 1</option>
+                        <option value="2">Triwulan 2</option>
+                        <option value="3">Triwulan 3</option>
+                        <option value="4">Triwulan 4</option>
                     </select>
                 </div>
 
@@ -48,7 +48,7 @@
                     <thead>
                         <tr>
                             <th>Unit</th>
-                            <th>Trivulan</th>
+                            <th>Triwulan</th>
                             <th>Jumlah</th>
                             <th>Status</th>
                         </tr>
