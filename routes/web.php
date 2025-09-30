@@ -23,7 +23,8 @@ Route::middleware(['auth.spreadsheet'])->group(function () {
     Route::get('/summary/triwulan/{triwulan}', [SummaryController::class, 'show'])->name('summary.triwulan');
 
     Route::get('/management', [ManagementController::class, 'index'])->name('management');
-    Route::post('/management/store', [ManagementController::class, 'store'])->name('management.store');
+    // Tambah akun
+    Route::post('/management/store', [App\Http\Controllers\ManagementController::class, 'store'])->name('management.store');
     // Tombol aksi
     Route::get('/management/view/{row}', [ManagementController::class, 'view'])->name('management.view');
     Route::post('/management/update/{row}', [ManagementController::class, 'update'])->name('management.update');
