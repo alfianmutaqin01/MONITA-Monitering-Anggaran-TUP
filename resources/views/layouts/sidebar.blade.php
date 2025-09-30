@@ -1,4 +1,5 @@
 <nav class="pc-sidebar">
+
     <div class="navbar-wrapper">
         <!-- Logo -->
         <div class="m-header">
@@ -34,59 +35,69 @@
                         <span class="pc-mtext">Detail Anggaran Unit</span>
                         <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
                     </a>
-                    <ul class="pc-submenu">
+
+                    <ul class="pc-submenu" id="unit-list" style="max-height: 300px; overflow-y: auto;">
+                        {{-- Kotak pencarian hanya muncul untuk admin --}}
                         @if($userRole === 'admin')
+                            <li class="pc-item p-2 text-end">
+                                <input type="text" id="search-unit" class="form-control form-control-sm ms-5"
+                                    placeholder="Cari unit..." style="width: 70%; font-size: 0.85rem; border-radius: 6px;">
+                            </li>
+
+                            {{-- Daftar semua unit --}}
                             @foreach($allUnits as $kode => $nama)
-                                <li class="pc-item">
+                                <li class="pc-item unit-item">
                                     <a class="pc-link" href="{{ route('unit.show', $kode) }}">{{ $nama }}</a>
                                 </li>
                             @endforeach
                         @else
+                            {{-- Jika user biasa, hanya tampilkan unit miliknya --}}
                             <li class="pc-item">
                                 <a class="pc-link" href="{{ route('unit.show', $userUnitKode) }}">{{ $userUnitNama }}</a>
                             </li>
                         @endif
                     </ul>
-
                 </li>
 
                 <!-- Summary Anggaran -->
-                @if($userRole === 'admin')
-                    <li class="pc-item pc-hasmenu">
-                        <a href="#!" class="pc-link">
-                            <span class="pc-micon"><i class="ti ti-report-money"></i></span>
-                            <span class="pc-mtext">Summary Anggaran</span>
-                            <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
-                        </a>
-                        <ul class="pc-submenu">
-                            @for ($i = 1; $i <= 4; $i++)
-                                <li class="pc-item">
-                                    <a class="pc-link" href="{{ route('summary.triwulan', $i) }}">Triwulan {{ $i }}</a>
-                                </li>
-                            @endfor
+                <li class="pc-item pc-hasmenu">
+                    <a href="#!" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-report-money"></i></span>
+                        <span class="pc-mtext">Summary Anggaran</span>
+                        <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+                    </a>
+                    <ul class="pc-submenu">
+                        @for ($i = 1; $i <= 4; $i++)
+                            <li class="pc-item">
+                                <a class="pc-link" href="{{ route('summary.triwulan', $i) }}">Triwulan {{ $i }}</a>
+                            </li>
+                        @endfor
 
-                        </ul>
+                    </ul>
+                </li>
+                @if($userRole === 'admin')
+                    <!-- management akun -->
+                    <li class="pc-item">
+                        <a class="pc-link {{ request()->routeIs('management') ? 'active' : '' }}"
+                            href="{{ route('management') }}">
+                            <span class="pc-micon"><i class="ti ti-user"></i></span>
+                            <span class="pc-mtext">Management Akun</span>
+                        </a>
+                    </li>
+
+                    <!-- pengaturan -->
+                    <li class="pc-item">
+                        <a class="pc-link {{ request()->routeIs('pengaturan') ? 'active' : '' }}"
+                            href="{{ route('pengaturan') }}">
+                            <span class="pc-micon"><i class="ti ti-settings"></i></span>
+                            <span class="pc-mtext">pengaturan</span>
+                        </a>
                     </li>
                 @endif
 
-                <!-- Laporan -->
-                <li class="pc-item">
-                    <a class="pc-link {{ request()->routeIs('laporan') ? 'active' : '' }}"
-                        href="{{ route('laporan') }}">
-                        <span class="pc-micon"><i class="ti ti-file"></i></span>
-                        <span class="pc-mtext">Laporan</span>
-                    </a>
-                </li>
 
-                <!-- Pengaturan -->
-                <li class="pc-item">
-                    <a class="pc-link {{ request()->routeIs('pengaturan') ? 'active' : '' }}"
-                        href="{{ route('pengaturan') }}">
-                        <span class="pc-micon"><i class="ti ti-settings"></i></span>
-                        <span class="pc-mtext">Pengaturan Akun</span>
-                    </a>
-                </li>
             </ul>
+
 
             <!-- Footer card -->
             <div class="w-100 text-center mt-3">
@@ -95,3 +106,23 @@
         </div>
     </div>
 </nav>
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const searchInput = document.getElementById('search-unit');
+            const unitItems = document.querySelectorAll('#unit-list .unit-item');
+
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function () {
+                    const keyword = this.value.toLowerCase();
+                    unitItems.forEach(item => {
+                        const text = item.textContent.toLowerCase();
+                        // tampilkan/hilangkan item sesuai keyword
+                        item.style.display = text.includes(keyword) ? '' : 'none';
+                    });
+                });
+            }
+        });
+    </script>
+@endpush

@@ -17,7 +17,7 @@
                         </div>
                     </div>
                     <span class="text-white d-block f-34 f-w-500 my-2">
-                        1350
+                        Rp. 162.987.098
                         <i class="ti ti-arrow-up-right-circle opacity-50"></i>
                     </span>
                     <p class="mb-0 opacity-75">Triwulan 1</p>
@@ -37,7 +37,7 @@
                         </div>
                     </div>
                     <span class="text-white d-block f-34 f-w-500 my-2">
-                        1350
+                        Rp. 162.987.098
                         <i class="ti ti-arrow-up-right-circle opacity-50"></i>
                     </span>
                     <p class="mb-0 opacity-75">Triwulan 2</p>
@@ -57,7 +57,7 @@
                         </div>
                     </div>
                     <span class="text-white d-block f-34 f-w-500 my-2">
-                        1350
+                        Rp. 162.987.098
                         <i class="ti ti-arrow-up-right-circle opacity-50"></i>
                     </span>
                     <p class="mb-0 opacity-75">Triwulan 3</p>
@@ -216,44 +216,6 @@
                         <li class="paginate_button page-item next"><a href="#" class="page-link">Next</a></li>
                     </ul>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="">
-        <div class="form-section">
-            <h3>Data Anggaran Terbaru</h3>
-            <div class="table-primary table-responsive card">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Unit</th>
-                            <th>Triwulan</th>
-                            <th>Jumlah</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Laboratorium</td>
-                            <td>1</td>
-                            <td>Rp 15.000.000</td>
-                            <td><span class="badge-success">Disetujui</span></td>
-                        </tr>
-                        <tr>
-                            <td>Keuangan</td>
-                            <td>1</td>
-                            <td>Rp 25.000.000</td>
-                            <td><span class="badge-warning">Proses</span></td>
-                        </tr>
-                        <tr>
-                            <td>IT</td>
-                            <td>1</td>
-                            <td>Rp 35.000.000</td>
-                            <td><span class="badge-success">Disetujui</span></td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
