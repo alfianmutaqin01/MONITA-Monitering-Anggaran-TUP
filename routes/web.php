@@ -26,9 +26,10 @@ Route::middleware(['auth.spreadsheet'])->group(function () {
     // Tambah akun
     Route::post('/management/store', [App\Http\Controllers\ManagementController::class, 'store'])->name('management.store');
     // Tombol aksi
-    Route::get('/management/view/{row}', [ManagementController::class, 'view'])->name('management.view');
-    Route::post('/management/update/{row}', [ManagementController::class, 'update'])->name('management.update');
-    Route::delete('/management/delete/{row}', [ManagementController::class, 'delete'])->name('management.delete');
+    Route::get('/management/show/{row}', [\App\Http\Controllers\ManagementController::class, 'show'])->name('management.show');
+    Route::post('/management/update/{row}', [\App\Http\Controllers\ManagementController::class, 'update'])->name('management.update');
+    Route::delete('/management/delete/{row}', [\App\Http\Controllers\ManagementController::class, 'destroy'])->name('management.destroy');
+
 
     Route::get('/pengaturan', function () {
         return view('main.pengaturan');
