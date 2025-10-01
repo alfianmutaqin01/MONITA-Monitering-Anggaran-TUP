@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\ManagementController;
+use App\Http\Controllers\DashboardController;
 
 // Redirect root ke login
 Route::get('/', function () {
@@ -18,7 +19,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected routes (pastikan middleware 'auth.spreadsheet' sudah terdaftar di Kernel)
 Route::middleware(['auth.spreadsheet'])->group(function () {
-    Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
     Route::get('/unit/{kode}', [UnitController::class, 'show'])->name('unit.show');
     Route::get('/summary/triwulan/{triwulan}', [SummaryController::class, 'show'])->name('summary.triwulan');
 

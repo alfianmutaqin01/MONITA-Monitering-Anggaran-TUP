@@ -17,10 +17,9 @@
                         </div>
                     </div>
                     <span class="text-white d-block f-34 f-w-500 my-2">
-                        Rp. 162.987.098
-                        <i class="ti ti-arrow-up-right-circle opacity-50"></i>
+                        Rp {{ number_format($saldoTW1, 0, ',', '.') }}
                     </span>
-                    <p class="mb-0 opacity-75">Triwulan 1</p>
+                    <p class="mb-0 opacity-75">Sisa Saldo Triwulan 1</p>
                 </div>
             </div>
         </div>
@@ -37,10 +36,9 @@
                         </div>
                     </div>
                     <span class="text-white d-block f-34 f-w-500 my-2">
-                        Rp. 162.987.098
-                        <i class="ti ti-arrow-up-right-circle opacity-50"></i>
+                        Rp {{ number_format($saldoTW2, 0, ',', '.') }}
                     </span>
-                    <p class="mb-0 opacity-75">Triwulan 2</p>
+                    <p class="mb-0 opacity-75">Sisa Saldo Triwulan 2</p>
                 </div>
             </div>
         </div>
@@ -57,10 +55,9 @@
                         </div>
                     </div>
                     <span class="text-white d-block f-34 f-w-500 my-2">
-                        Rp. 162.987.098
-                        <i class="ti ti-arrow-up-right-circle opacity-50"></i>
+                        Rp {{ number_format($saldoTW3, 0, ',', '.') }}
                     </span>
-                    <p class="mb-0 opacity-75">Triwulan 3</p>
+                    <p class="mb-0 opacity-75">Sisa Saldo Triwulan 3</p>
                 </div>
             </div>
         </div>
@@ -83,10 +80,9 @@
                             <div class="row">
                                 <div class="cols-6">
                                     <span class="text-white d-block f-34 f-w-500 my-2">
-                                        RP. 135.000
-                                        <i class="ti ti-arrow-up-right-circle opacity-50"></i>
+                                        Rp {{ number_format($saldoTW4, 0, ',', '.') }}
                                     </span>
-                                    <p class="mb-0 opacity-75">Triwulan 4</p>
+                                    <p class="mb-0 opacity-75">Sisa Saldo Triwulan 4</p>
                                 </div>
                             </div>
                         </div>
