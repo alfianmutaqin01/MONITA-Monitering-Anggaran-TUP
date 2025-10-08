@@ -21,8 +21,8 @@
      
      
     <div class="card">
-        <div class="card-header bg-secondary">
-            <h5 class="mb-0 text-white">Summary Anggaran Triwulan {{ $tw }}</h5>
+        <div class="card-header">
+            <h5 class="mb-0">Summary Anggaran Triwulan {{ $tw }}</h5>
         </div>
 
         <div class="card-body">

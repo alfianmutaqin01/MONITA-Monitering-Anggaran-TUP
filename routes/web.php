@@ -6,6 +6,7 @@ use App\Http\Controllers\UnitController;
 use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LaporanController;
 
 // Redirect root ke login
 Route::get('/', function () {
@@ -25,6 +26,9 @@ Route::middleware(['auth.spreadsheet'])->group(function () {
     Route::get('/summary/triwulan/{tw}', [SummaryController::class, 'index'])
         ->where('tw', '[1-4]')
         ->name('summary.triwulan');
+
+    Route::get('/laporan/triwulan/{tw}', [LaporanController::class, 'index'])
+        ->name('laporan.triwulan');
 
     Route::get('/management', [ManagementController::class, 'index'])->name('management');
     // Tambah akun

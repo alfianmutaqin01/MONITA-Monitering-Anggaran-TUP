@@ -21,8 +21,8 @@
      
      
     <div class="card">
-        <div class="card-header bg-secondary">
-            <h5 class="mb-0 text-white">Summary Anggaran Triwulan {{ $tw }}</h5>
+        <div class="card-header">
+            <h5 class="mb-0">Summary Anggaran Triwulan {{ $tw }}</h5>
         </div>
 
         <div class="card-body">
@@ -49,10 +49,6 @@
                             <th class="text-white">RKM OPERASI</th>
                             <th class="text-white">REAL RKM</th>
                             <th class="text-white">% RKM</th>
-                            <th class="text-white">AKM PENDAPATAN</th>
-                            <th class="text-white">AKM BEBAN</th>
-                            <th class="text-white">SHU</th>
-                            <th class="text-white">OR</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,10 +73,6 @@
                                 <td class="text-end">{{ ($row['rkm_operasi']) }}</td>
                                 <td class="text-end">{{ ($row['real_rkm']) }}</td>
                                 <td class="text-center">{{ formatPercentCell($row['persen_rkm']) }}</td>
-                                <td class="text-end">{{ formatRupiah($row['akm_pend']) }}</td>
-                                <td class="text-end">{{ formatRupiah($row['akm_beban']) }}</td>
-                                <td class="text-end">{{ formatRupiah($row['shu']) }}</td>
-                                <td class="text-center">{{ $row['or'] }}</td>
                             </tr>
                         @empty
                             <tr>

@@ -75,6 +75,25 @@
 
                     </ul>
                 </li>
+
+                <!-- Laporan -->
+                <li class="pc-item pc-hasmenu">
+                    <a href="#!" class="pc-link">
+                        <span class="pc-micon"><i class="ti ti-file-text"></i></span>
+                        <span class="pc-mtext">Laporan</span>
+                        <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+                    </a>
+                    <ul class="pc-submenu">
+                        @for ($i = 1; $i <= 4; $i++)
+                            <li class="pc-item">
+                                <a class="pc-link" href="{{ route('laporan.triwulan', $i) }}">
+                                    Triwulan {{ $i }}
+                                </a>
+                            </li>
+                        @endfor
+                    </ul>
+                </li>
+
                 @if($userRole === 'admin')
                     <!-- management akun -->
                     <li class="pc-item">

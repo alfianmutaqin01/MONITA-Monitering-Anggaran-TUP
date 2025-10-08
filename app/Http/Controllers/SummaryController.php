@@ -75,8 +75,8 @@ class SummaryController extends Controller
         ];
         $sheetName = $sheetNames[$tw] ?? $sheetNames[1];
 
-        // Range sesuai instruksi: C6 sampai X39 (22 kolom)
-        $range = "{$sheetName}!C6:X39";
+        // Range sesuai instruksi: C6 sampai T39
+        $range = "{$sheetName}!C6:T39";
 
         try {
             $service = $this->getGoogleSheetService();
@@ -117,10 +117,6 @@ class SummaryController extends Controller
                 'rkm_operasi'   => $this->parseNumber($row[15] ?? ''),
                 'real_rkm'      => $this->parseNumber($row[16] ?? ''),
                 'persen_rkm'    => trim($row[17] ?? ''),
-                'akm_pend'      => $this->parseNumber($row[18] ?? ''),
-                'akm_beban'     => $this->parseNumber($row[19] ?? ''),
-                'shu'           => $this->parseNumber($row[20] ?? ''),
-                'or'            => $row[21] ?? '',
             ];
         }
 
