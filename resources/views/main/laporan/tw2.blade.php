@@ -3,20 +3,20 @@
 @section('content')
 <div class="card">
     <div class="card-header">
-        <h5 class="mb-0">Laporan RAW Data TW {{ $tw }}</h5>
+        <h5 class="mb-0">Laporan RAW Data Lengkap Triwulan {{ $tw }}</h5>
     </div>
 
     <div class="card-body">
         <form method="GET" action="{{ route('laporan.triwulan', $tw) }}" class="mb-3">
             <div class="d-flex gap-2 align-items-center">
-                <select name="unit" class="form-select" style="width:200px;">
+                <select name="unit" class="form-select" style="width:450px;">
                     <option value="">Semua Unit</option>
                     @foreach($units as $u)
                         <option value="{{ $u }}" {{ (isset($filterUnit) && $filterUnit === $u) ? 'selected' : '' }}>{{ $u }}</option>
                     @endforeach
                 </select>
                 <button class="btn btn-secondary" type="submit"><i class="ti ti-filter me-1"></i> Terapkan Filter</button>
-                <a href="{{ route('laporan.triwulan', $tw) }}" class="btn btn-secondary">Reset</a>
+                <a href="{{ route('laporan.triwulan', $tw) }}" class="btn btn-secondary" style="width: 150px; padding: 9px;">Reset</a>
             </div>
         </form>
 

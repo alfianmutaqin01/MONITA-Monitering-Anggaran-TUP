@@ -63,7 +63,7 @@
                                         data-kode="{{ $u['kode_pp'] }}"><i class="ti ti-eye"></i></button>
                                     <button class="btn btn-sm btn-icon btn-light-warning btn-edit"
                                         data-kode="{{ $u['kode_pp'] }}"><i class="ti ti-pencil"></i></button>
-                                    <button class="btn btn-sm btn-icon btn-light-danger btn-delete"
+                                    <button class="btn btn-sm btn-icon btn-light-secondary btn-delete"
                                         data-kode="{{ $u['kode_pp'] }}"><i class="ti ti-trash"></i></button>
                                 </td>
                             </tr>
