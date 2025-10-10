@@ -37,29 +37,29 @@
                     </a>
 
                     <ul class="pc-submenu" id="unit-list">
-    @if($userRole === 'admin')
-        <li class="pc-item p-2 text-end">
-            <input type="text" id="search-unit" class="form-control form-control-sm ms-5"
-                placeholder="Cari unit..." style="width: 70%; font-size: 0.85rem; border-radius: 6px;">
-        </li>
+                        @if($userRole === 'admin')
+                            <li class="pc-item p-2 text-end">
+                                <input type="text" id="search-unit" class="form-control form-control-sm ms-5"
+                                    placeholder="Cari unit..." style="width: 70%; font-size: 0.85rem; border-radius: 6px;">
+                            </li>
 
-        <li class="pc-item">
-            <div style="max-height: 300px; overflow-y: auto;">
-                <ul class="list-unstyled mb-0">
-                    @foreach($allUnits as $kode => $nama)
-                        <li class="pc-item unit-item">
-                            <a class="pc-link" href="{{ route('unit.show', $kode) }}">{{ $nama }}</a>
-                        </li>
-                    @endforeach
-                </ul>
-            </div>
-        </li>
-    @else
-        <li class="pc-item">
-            <a class="pc-link" href="{{ route('unit.show', $userUnitKode) }}">{{ $userUnitNama }}</a>
-        </li>
-    @endif
-</ul>
+                            <li class="pc-item">
+                                <div style="max-height: 300px; overflow-y: auto;">
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach($allUnits as $kode => $nama)
+                                            <li class="pc-item unit-item">
+                                                <a class="pc-link" href="{{ route('unit.show', $kode) }}">{{ $nama }}</a>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </li>
+                        @else
+                            <li class="pc-item">
+                                <a class="pc-link" href="{{ route('unit.show', $userUnitKode) }}">{{ $userUnitNama }}</a>
+                            </li>
+                        @endif
+                    </ul>
 
                 </li>
 
@@ -110,12 +110,13 @@
 
                     <!-- pengaturan -->
                     <li class="pc-item">
-                        <a class="pc-link {{ request()->routeIs('pengaturan') ? 'active' : '' }}"
-                            href="{{ route('pengaturan') }}">
+                        <a class="pc-link {{ request()->routeIs('settings.index') ? 'active' : '' }}"
+                            href="{{ route('settings.index') }}">
                             <span class="pc-micon"><i class="ti ti-settings"></i></span>
-                            <span class="pc-mtext">pengaturan</span>
+                            <span class="pc-mtext">Pengaturan</span>
                         </a>
                     </li>
+
                 @endif
 
 

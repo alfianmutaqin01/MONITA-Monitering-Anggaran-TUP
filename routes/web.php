@@ -7,6 +7,7 @@ use App\Http\Controllers\SummaryController;
 use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\SettingsController;
 
 // Redirect root ke login
 Route::get('/', function () {
@@ -39,7 +40,6 @@ Route::middleware(['auth.spreadsheet'])->group(function () {
     Route::delete('/management/delete/{row}', [ManagementController::class, 'destroy'])->name('management.destroy');
 
 
-    Route::get('/pengaturan', function () {
-        return view('main.pengaturan');
-    })->name('pengaturan');
+    Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+    Route::post('/settings/update', [SettingsController::class, 'update'])->name('settings.update');
 });

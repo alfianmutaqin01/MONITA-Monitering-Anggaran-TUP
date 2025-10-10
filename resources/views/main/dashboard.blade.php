@@ -106,8 +106,8 @@
             </div>
         </div>
     </div>
-    <!-- area chart -->
-    <div class="card">
+    <!-- CARD CHART SERAPAN -->
+    <div class="card mb-4">
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <div>
@@ -124,65 +124,35 @@
                 </form>
             </div>
 
-            <!-- pembungkus agar tabel chart dapat scroll horizontal jika banyak label -->
-            <div style="overflow-x: auto;">
-                <div id="chart-serapan" style="min-width: 900px; height: 360px;"></div>
+            <div style="overflow-x:auto;">
+                <div id="chart-serapan" style="min-width:900px;height:360px;"></div>
             </div>
         </div>
     </div>
 
-    <!-- include ApexCharts CDN (letakkan di layout atau di bawah) -->
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <!-- CARD CHART REALISASI -->
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h6 class="mb-0">Persentase Realisasi</h6>
+                    <h5 class="mb-0">Triwulan {{ $currentTw }}</h5>
+                </div>
+                <form method="get" class="mb-0">
+                    <select name="tw" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="1" {{ $currentTw == 1 ? 'selected' : '' }}>Triwulan 1</option>
+                        <option value="2" {{ $currentTw == 2 ? 'selected' : '' }}>Triwulan 2</option>
+                        <option value="3" {{ $currentTw == 3 ? 'selected' : '' }}>Triwulan 3</option>
+                        <option value="4" {{ $currentTw == 4 ? 'selected' : '' }}>Triwulan 4</option>
+                    </select>
+                </form>
+            </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const labels = {!! json_encode($labels) !!};
-            const seriesData = {!! json_encode($data, JSON_NUMERIC_CHECK) !!};
-
-            // Tentukan warna setiap batang berdasarkan nilai serapan
-            const colors = seriesData.map(val => {
-                if (val <= 25) return '#a31d1d';   // Merah
-                if (val <= 50) return '#ffc107';   // Kuning
-                if (val <= 75) return '#28a745';   // Hijau
-                return '#5c77b1';                  // Biru
-            });
-
-            const options = {
-                chart: { type: 'bar', height: 360, toolbar: { show: false } },
-                series: [{ name: 'Serapan (%)', data: seriesData }],
-                plotOptions: {
-                    bar: {
-                        columnWidth: '60%',
-                        distributed: true, // penting agar warna per-bar berfungsi
-                    }
-                },
-                colors: colors,
-                dataLabels: { enabled: false },
-                xaxis: {
-                    categories: labels,
-                    labels: {
-                        rotate: -45,
-                        hideOverlappingLabels: true,
-                        style: { fontSize: '11px' }
-                    }
-                },
-                yaxis: {
-                    min: 0,
-                    max: 100,
-                    tickAmount: 5,
-                    labels: { formatter: val => val.toFixed(0) + '%' },
-                    title: { text: 'Persentase Serapan (%)' }
-                },
-                tooltip: {
-                    y: { formatter: val => val + ' %' }
-                },
-                grid: { borderColor: '#eee' }
-            };
-
-            new ApexCharts(document.querySelector('#chart-serapan'), options).render();
-        });
-    </script>
-
+            <div style="overflow-x:auto;">
+                <div id="chart-realisasi" style="min-width:900px;height:360px;"></div>
+            </div>
+        </div>
+    </div>
 
     <div class="card">
         <div class="card-header">
@@ -553,4 +523,68 @@
             </div>
         </div>
     </div>
+    <!-- ApexCharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const labels = {!! json_encode($labels) !!};
+            const dataSerapan = {!! json_encode($dataSerapan, JSON_NUMERIC_CHECK) !!};
+            const dataRealisasi = {!! json_encode($dataRealisasi, JSON_NUMERIC_CHECK) !!};
+
+            // --- Fungsi pembuat warna dinamis
+            function colorByValue(val) {
+                if (val <= 25) return "#a31d1d";   // Merah
+                if (val <= 50) return "#ffc107";   // Kuning
+                if (val <= 75) return "#28a745";   // Hijau
+                return "#0d6efd";                  // Biru
+            }
+
+            const colorsSerapan = dataSerapan.map(colorByValue);
+            const colorsRealisasi = dataRealisasi.map(colorByValue);
+
+            // --- Chart Serapan
+            const chartSerapan = new ApexCharts(document.querySelector("#chart-serapan"), {
+                chart: { type: "bar", height: 360, toolbar: { show: false } },
+                series: [{ name: "Serapan (%)", data: dataSerapan }],
+                plotOptions: { bar: { columnWidth: "60%", distributed: true } },
+                colors: colorsSerapan,
+                dataLabels: { enabled: false },
+                xaxis: {
+                    categories: labels,
+                    labels: { rotate: -45, hideOverlappingLabels: true, style: { fontSize: "11px" } }
+                },
+                yaxis: {
+                    min: 0, max: 100, tickAmount: 5,
+                    labels: { formatter: val => val.toFixed(0) + "%" },
+                    title: { text: "Persentase Serapan (%)" }
+                },
+                tooltip: { y: { formatter: val => val + " %" } },
+                grid: { borderColor: "#eee" }
+            });
+            chartSerapan.render();
+
+            // --- Chart Realisasi
+            const chartRealisasi = new ApexCharts(document.querySelector("#chart-realisasi"), {
+                chart: { type: "bar", height: 360, toolbar: { show: false } },
+                series: [{ name: "Realisasi (%)", data: dataRealisasi }],
+                plotOptions: { bar: { columnWidth: "60%", distributed: true } },
+                colors: colorsRealisasi,
+                dataLabels: { enabled: false },
+                xaxis: {
+                    categories: labels,
+                    labels: { rotate: -45, hideOverlappingLabels: true, style: { fontSize: "11px" } }
+                },
+                yaxis: {
+                    min: 0, max: 100, tickAmount: 5,
+                    labels: { formatter: val => val.toFixed(0) + "%" },
+                    title: { text: "Persentase Realisasi (%)" }
+                },
+                tooltip: { y: { formatter: val => val + " %" } },
+                grid: { borderColor: "#eee" }
+            });
+            chartRealisasi.render();
+        });
+    </script>
 @endsection
