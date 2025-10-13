@@ -32,9 +32,9 @@
                         <th class="text-white">AKUN</th>
                         <th class="text-white">NAMA AKUN</th>
                         <th class="text-white">URAIAN</th>
-                        <th class="text-white text-end">ANGGARAN</th>
-                        <th class="text-white text-end">REALISASI</th>
-                        <th class="text-white text-end">SALDO</th>
+                        <th class="text-white">ANGGARAN</th>
+                        <th class="text-white">REALISASI</th>
+                        <th class="text-white">SALDO</th>
                     </tr>
                 </thead>
                 <tbody>

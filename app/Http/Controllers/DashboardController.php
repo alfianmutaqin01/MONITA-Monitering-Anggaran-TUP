@@ -22,140 +22,116 @@ class DashboardController extends Controller
         $client->setApplicationName('MONITA - Dashboard');
         $client->setScopes([Google_Service_Sheets::SPREADSHEETS_READONLY]);
         $client->setAuthConfig(storage_path('app/credentials/service-account.json'));
-
         return new Google_Service_Sheets($client);
     }
 
-    /**
-     * Ambil nilai satu sel (mis. SUMMARY TW I!H39)
-     */
     private function getCellValue($service, $range)
     {
-        $params = ['valueRenderOption' => 'UNFORMATTED_VALUE'];
-        $response = $service->spreadsheets_values->get($this->spreadsheetId, $range, $params);
+        $response = $service->spreadsheets_values->get($this->spreadsheetId, $range, [
+            'valueRenderOption' => 'UNFORMATTED_VALUE'
+        ]);
         $value = $response->getValues()[0][0] ?? 0;
-
-        // Jika string berformat ribuan (1.695.062,00) → bersihkan
-        if (!is_numeric($value)) {
-            $value = preg_replace('/[^0-9.\-]/', '', (string)$value);
-        }
-
+        if (!is_numeric($value)) $value = preg_replace('/[^0-9.\-]/', '', (string)$value);
         return (float) $value;
     }
 
-    /**
-     * Dashboard utama -> saldo + chart serapan + chart realisasi
-     */
     public function index(Request $request)
     {
         $service = $this->getGoogleSheetService();
 
-        // --- Ambil total saldo dari tiap triwulan
+        // 🔹 Ambil saldo TW
         $saldoTW1 = $this->getCellValue($service, 'SUMMARY TW I!H39');
         $saldoTW2 = $this->getCellValue($service, 'SUMMARY TW II!H39');
         $saldoTW3 = $this->getCellValue($service, 'SUMMARY TW III!H39');
         $saldoTW4 = $this->getCellValue($service, 'SUMMARY TW IV!H39');
 
-        // --- Tentukan triwulan aktif
+        // 🔹 Tentukan triwulan default otomatis
         $month = Carbon::now()->month;
-        if ($month <= 3) $defaultTw = 1;
-        elseif ($month <= 6) $defaultTw = 2;
-        elseif ($month <= 9) $defaultTw = 3;
-        else $defaultTw = 4;
+        $defaultTw = match (true) {
+            $month >= 1 && $month <= 3 => 1,
+            $month >= 4 && $month <= 6 => 2,
+            $month >= 7 && $month <= 9 => 3,
+            default => 4,
+        };
 
-        $currentTw = (int) $request->query('tw', $defaultTw);
-        if ($currentTw < 1 || $currentTw > 4) $currentTw = $defaultTw;
+        // 🔹 Ambil triwulan dari query
+        $currentTw = (int) $request->query('tw', 0);
+
+        // 🔹 Redirect otomatis jika belum ada parameter tw
+        if ($currentTw === 0) {
+            return redirect()->route('dashboard', ['tw' => $defaultTw]);
+        }
 
         $sheetName = "SUMMARY TW " . $this->toRoman($currentTw);
 
-        // --- Range pembacaan data
+        // 🔹 Range: C (Kode), T (Serapan), M (RKA), Q (operasional)
         $startRow = 6;
-        $maxRows = 50;
-        $endRow = $startRow + $maxRows - 1;
+        $endRow = 55;
+        $ranges = [
+            "{$sheetName}!C{$startRow}:C{$endRow}",
+            "{$sheetName}!T{$startRow}:T{$endRow}",
+            "{$sheetName}!M{$startRow}:M{$endRow}",
+            "{$sheetName}!Q{$startRow}:Q{$endRow}",
+        ];
 
-        $rangeKode = "{$sheetName}!C{$startRow}:C{$endRow}";
-        $rangeRealisasi = "{$sheetName}!Q{$startRow}:Q{$endRow}";
-        $rangeSerapan = "{$sheetName}!T{$startRow}:T{$endRow}";
+        $batch = $service->spreadsheets_values->batchGet($this->spreadsheetId, [
+            'ranges' => $ranges,
+            'valueRenderOption' => 'UNFORMATTED_VALUE'
+        ]);
 
-        // --- Ambil tiga kolom sekaligus
-        $batch = $service->spreadsheets_values->batchGet(
-            $this->spreadsheetId,
-            ['ranges' => [$rangeKode, $rangeRealisasi, $rangeSerapan], 'valueRenderOption' => 'UNFORMATTED_VALUE']
-        );
+        $kodeValues = $batch->getValueRanges()[0]->getValues() ?? [];
+        $serapanValues = $batch->getValueRanges()[1]->getValues() ?? [];
+        $rkaValues = $batch->getValueRanges()[2]->getValues() ?? [];
+        $operasionalValues = $batch->getValueRanges()[3]->getValues() ?? [];
 
-        $valueRanges = $batch->getValueRanges();
-        $kodeValues = $valueRanges[0]->getValues() ?? [];
-        $realisasiValues = $valueRanges[1]->getValues() ?? [];
-        $serapanValues = $valueRanges[2]->getValues() ?? [];
-
-        $getCell = fn($arr, $i) => isset($arr[$i][0]) ? $arr[$i][0] : '';
-
-        // Cari index terakhir yang punya kode PP
-        $lastIndex = -1;
-        for ($i = 0; $i < $maxRows; $i++) {
-            $kodeCell = trim((string)$getCell($kodeValues, $i));
-            if ($kodeCell !== '') $lastIndex = $i;
-        }
+        $get = fn($arr, $i) => isset($arr[$i][0]) ? $arr[$i][0] : '';
 
         $chartData = [];
-        for ($i = 0; $i <= max(0, $lastIndex); $i++) {
-            $kodePP = trim((string)$getCell($kodeValues, $i));
-            if ($kodePP === '') continue;
-
-            $rawSerapan = $getCell($serapanValues, $i);
-            $rawRealisasi = $getCell($realisasiValues, $i);
-
-            $serapan = $this->normalizePercent($rawSerapan);
-            $realisasi = $this->normalizePercent($rawRealisasi);
+        foreach ($kodeValues as $i => $kodeRow) {
+            $kode = trim((string)($kodeRow[0] ?? ''));
+            if ($kode === '') continue;
 
             $chartData[] = [
-                'kode_pp' => $kodePP,
-                'serapan' => $serapan,
-                'realisasi' => $realisasi
+                'kode_pp' => $kode,
+                'serapan' => $this->normalizePercent($get($serapanValues, $i)),
+                'rka' => $this->normalizePercent($get($rkaValues, $i)),
+                'operasional' => $this->normalizePercent($get($operasionalValues, $i)),
             ];
         }
 
-        $labels = array_column($chartData, 'kode_pp');
-        $dataSerapan = array_column($chartData, 'serapan');
-        $dataRealisasi = array_column($chartData, 'realisasi');
-
-        return view('main.dashboard', compact(
-            'saldoTW1', 'saldoTW2', 'saldoTW3', 'saldoTW4',
-            'labels', 'dataSerapan', 'dataRealisasi', 'currentTw'
-        ));
+        return view('main.dashboard', [
+            'saldoTW1' => $saldoTW1,
+            'saldoTW2' => $saldoTW2,
+            'saldoTW3' => $saldoTW3,
+            'saldoTW4' => $saldoTW4,
+            'labels' => array_column($chartData, 'kode_pp'),
+            'dataSerapan' => array_column($chartData, 'serapan'),
+            'dataRka' => array_column($chartData, 'rka'),
+            'dataOperasional' => array_column($chartData, 'operasional'),
+            'currentTw' => $currentTw
+        ]);
     }
 
-    /**
-     * Normalisasi nilai persen agar tetap aman (0–100)
-     */
     private function normalizePercent($raw)
     {
-        $num = 0.0;
         if ($raw === '' || $raw === null) return 0.0;
 
+        $num = 0.0;
         if (is_numeric($raw)) {
             $num = (float)$raw;
         } else {
-            $s = trim((string)$raw);
-            if (strpos($s, '%') !== false) {
-                $s = str_replace('%', '', $s);
-            }
-            $s = str_replace(',', '.', $s);
-            $s = preg_replace('/[^0-9.\-]/', '', $s);
-            $num = ($s === '') ? 0.0 : (float)$s;
+            $s = str_replace(['%', ',', ' '], ['', '.', ''], $raw);
+            $num = (float)preg_replace('/[^0-9.\-]/', '', $s);
         }
 
-        // Jika fraction (0–1) ubah ke persen
-        if ($num > 0 && $num <= 1) $num *= 100.0;
-        if ($num < 0) $num = 0.0;
-        if ($num > 100) $num = 100.0;
+        // 🔹 Jika kecil (<2) kemungkinan 0.8 = 80%
+        if ($num > 0 && $num <= 2) $num *= 100.0;
 
         return round($num, 2);
     }
 
     private function toRoman($number)
     {
-        $map = [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV'];
-        return $map[$number] ?? 'I';
+        return [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV'][$number] ?? 'I';
     }
 }

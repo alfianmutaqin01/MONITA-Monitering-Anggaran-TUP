@@ -37,8 +37,8 @@
 
             <!-- Tabel akun -->
             <div class="table-responsive card table-primary">
-                <table class="table table-striped">
-                    <thead class="bg-secondary">
+                <table class="table table-bordered table-striped">
+                    <thead class="bg-secondary text-center">
                         <tr>
                             <th class="text-white">No</th>
                             <th class="text-white">Kode PP</th>
@@ -229,19 +229,49 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const toastEl = document.getElementById('liveToast');
-            const toastTitle = document.getElementById('toastTitle');
-            const toastBody = document.getElementById('toastBody');
-            function showToast(title, body) {
-                toastTitle.textContent = title;
-                toastBody.textContent = body;
-                const bs = new bootstrap.Toast(toastEl);
-                bs.show();
+            document.querySelectorAll('.modal.show').forEach(modalEl => {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                modalInstance.hide();
+            });
+            // ========== SWEETALERT WRAPPER ==========
+            function showAlert(type, title, text) {
+                const config = {
+                    title: title || '',
+                    text: text || '',
+                    icon: type || 'info',
+                    confirmButtonColor: type === 'success' ? '#28a745' : '#0d6efd',
+                    background: '#fff',
+                    customClass: {
+                        popup: 'rounded-3 shadow-lg',
+                        confirmButton: 'btn btn-primary mx-1'
+                    }
+                };
+                return Swal.fire(config);
             }
 
-            // SEARCH (client-side)
+            function showConfirm(options) {
+                return Swal.fire({
+                    title: options.title || 'Konfirmasi',
+                    text: options.text || '',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: options.confirmText || 'Ya',
+                    cancelButtonText: options.cancelText || 'Batal',
+                    confirmButtonColor: '#0d6efd',
+                    cancelButtonColor: '#6c757d',
+                    background: '#fff',
+                    customClass: {
+                        popup: 'rounded-3 shadow-lg',
+                        confirmButton: 'btn btn-primary mx-1',
+                        cancelButton: 'btn btn-secondary mx-1'
+                    }
+                });
+            }
+
+            // ========== SEARCH ==========
             const input = document.getElementById('search-akun');
             const rows = document.querySelectorAll('#akun-list tr');
             input.addEventListener('keyup', function () {
@@ -252,8 +282,12 @@
                 });
             });
 
-            // ADD (AJAX)
+            // ========== ADD ACCOUNT ==========
             document.getElementById('formAddAkun').addEventListener('submit', function (e) {
+                document.querySelectorAll('.modal.show').forEach(modalEl => {
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    modalInstance.hide();
+                });
                 e.preventDefault();
                 const form = new FormData(this);
                 fetch("{{ route('management.store') }}", {
@@ -264,17 +298,21 @@
                     .then(r => r.json())
                     .then(j => {
                         if (j.success) {
-                            showToast('Sukses', j.message || 'Akun berhasil ditambahkan');
-                            setTimeout(() => location.reload(), 700);
+                            showAlert('success', 'Berhasil!', j.message || 'Akun berhasil ditambahkan')
+                                .then(() => location.reload());
                         } else {
-                            showToast('Error', j.message || 'Gagal menambahkan');
+                            showAlert('error', 'Gagal', j.message || 'Tidak dapat menambahkan akun');
                         }
                     })
-                    .catch(() => showToast('Error', 'Request gagal'));
+                    .catch(() => showAlert('error', 'Error', 'Tidak dapat terhubung ke server.'));
             });
 
-            // VIEW
+            // ========== VIEW DETAIL ==========
             document.querySelectorAll('.btn-view').forEach(btn => {
+                document.querySelectorAll('.modal.show').forEach(modalEl => {
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    modalInstance.hide();
+                });
                 btn.addEventListener('click', () => {
                     const kode = btn.dataset.kode;
                     fetch(`/management/show/${encodeURIComponent(kode)}`)
@@ -288,14 +326,18 @@
                                 document.getElementById('viewRole').textContent = data.akun.role;
                                 new bootstrap.Modal(document.getElementById('modalViewAkun')).show();
                             } else {
-                                showToast('Error', data.message || 'Data tidak ditemukan');
+                                showAlert('error', 'Gagal', data.message || 'Data tidak ditemukan');
                             }
                         });
                 });
             });
 
-            // EDIT - open modal with data
+            // ========== EDIT ==========
             document.querySelectorAll('.btn-edit').forEach(btn => {
+                document.querySelectorAll('.modal.show').forEach(modalEl => {
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    modalInstance.hide();
+                });
                 btn.addEventListener('click', () => {
                     const kode = btn.dataset.kode;
                     fetch(`/management/show/${encodeURIComponent(kode)}`)
@@ -310,14 +352,18 @@
                                 document.getElementById('editRole').value = data.akun.role.toLowerCase();
                                 new bootstrap.Modal(document.getElementById('modalEditAkun')).show();
                             } else {
-                                showToast('Error', data.message || 'Data tidak ditemukan');
+                                showAlert('error', 'Gagal', data.message || 'Data tidak ditemukan');
                             }
                         });
                 });
             });
 
-            // EDIT - submit
+            // SUBMIT EDIT
             document.getElementById('formEditAkun').addEventListener('submit', function (e) {
+                document.querySelectorAll('.modal.show').forEach(modalEl => {
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    modalInstance.hide();
+                });
                 e.preventDefault();
                 const kodeOriginal = document.getElementById('editKodeOriginal').value;
                 const form = new FormData(this);
@@ -326,51 +372,53 @@
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: form
-                }).then(r => r.json())
+                })
+                    .then(r => r.json())
                     .then(j => {
                         if (j.success) {
-                            showToast('Sukses', 'Perubahan tersimpan');
-                            setTimeout(() => location.reload(), 700);
+                            showAlert('success', 'Berhasil!', 'Perubahan tersimpan')
+                                .then(() => location.reload());
                         } else {
-                            showToast('Error', j.message || 'Update gagal');
+                            showAlert('error', 'Gagal', j.message || 'Tidak dapat memperbarui akun');
                         }
-                    }).catch(err => {
-                        showToast('Error', 'Request gagal');
-                        console.error(err);
-                    });
+                    })
+                    .catch(() => showAlert('error', 'Error', 'Tidak dapat terhubung ke server.'));
             });
 
-            // DELETE
+            // ========== DELETE ==========
             let deleteKode = null;
 
             document.querySelectorAll('.btn-delete').forEach(btn => {
                 btn.addEventListener('click', () => {
                     deleteKode = btn.dataset.kode;
-                    // isi teks konfirmasi
-                    document.getElementById('delKodePP').textContent = deleteKode;
-                    document.getElementById('delNamaPP').textContent =
-                        btn.closest('tr').querySelector('td:nth-child(3)').textContent;
-                    new bootstrap.Modal(document.getElementById('modalDeleteAkun')).show();
+                    const namaPP = btn.closest('tr').querySelector('td:nth-child(3)').textContent;
+
+                    showConfirm({
+                        title: 'Hapus Akun?',
+                        text: `Apakah Anda yakin ingin menghapus akun ${namaPP} (Kode: ${deleteKode})?`,
+                        confirmText: 'Ya, Hapus',
+                        cancelText: 'Batal'
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            fetch(`/management/delete/${encodeURIComponent(deleteKode)}`, {
+                                method: 'DELETE',
+                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                            })
+                                .then(r => r.json())
+                                .then(j => {
+                                    if (j.success) {
+                                        showAlert('success', 'Berhasil!', 'Akun berhasil dihapus')
+                                            .then(() => location.reload());
+                                    } else {
+                                        showAlert('error', 'Gagal', j.message || 'Penghapusan gagal');
+                                    }
+                                })
+                                .catch(() => showAlert('error', 'Error', 'Tidak dapat menghubungi server.'));
+                        }
+                    });
                 });
             });
-
-            document.getElementById('btnConfirmDelete').addEventListener('click', () => {
-                if (!deleteKode) return;
-                fetch(`/management/delete/${encodeURIComponent(deleteKode)}`, {
-                    method: 'DELETE',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
-                }).then(r => r.json())
-                    .then(j => {
-                        if (j.success) {
-                            showToast('Sukses', 'Akun dihapus');
-                            setTimeout(() => location.reload(), 700);
-                        } else {
-                            showToast('Error', j.message || 'Gagal hapus');
-                        }
-                    }).catch(() => showToast('Error', 'Request gagal'));
-            });
-
-
-        }); // DOMContentLoaded
+        });
     </script>
+
 @endpush

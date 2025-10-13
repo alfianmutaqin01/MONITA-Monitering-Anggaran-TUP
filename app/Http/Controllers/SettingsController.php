@@ -7,49 +7,94 @@ use Illuminate\Support\Facades\File;
 
 class SettingsController extends Controller
 {
+    /**
+     * Tampilkan halaman pengaturan.
+     */
     public function index()
     {
-        $currentLink = env('GOOGLE_SPREADSHEET_ID');
-        return view('main.settings', [
-            'currentSheetLink' => $currentLink,
-        ]);
-    }
+        $envPath = base_path('.env');
+        $envContent = File::exists($envPath) ? File::get($envPath) : '';
 
-    public function update(Request $request)
-    {
-        $request->validate([
-            'sheet_link' => 'required|url',
-        ]);
-
-        $link = trim($request->input('sheet_link'));
-        $use = $request->has('use_new_sheet');
-
-        if ($use) {
-            $this->updateEnvValue('GOOGLE_SPREADSHEET_ID', $link);
-            session()->flash('success', 'Link Google Sheet berhasil diperbarui dan diaktifkan.');
-        } else {
-            session()->flash('warning', 'Link disimpan tetapi belum diaktifkan (centang "Gunakan link ini" untuk menerapkan).');
+        // Ambil semua entri spreadsheet tahunan
+        preg_match_all('/GOOGLE_SPREADSHEET_ID_YEAR_(\d+)=([^\s]+)/', $envContent, $matches);
+        $sheetYears = [];
+        if (!empty($matches[1])) {
+            foreach ($matches[1] as $i => $year) {
+                $sheetYears[$year] = $matches[2][$i];
+            }
         }
 
-        return redirect()->route('settings.index');
+        return view('main.settings', compact('sheetYears'));
     }
 
     /**
-     * Ubah nilai environment (.env) dengan aman
+     * Tambah link spreadsheet baru atau ubah tahun aktif.
      */
-    private function updateEnvValue($key, $value)
+    public function update(Request $request)
     {
-        $path = base_path('.env');
-        $escaped = preg_quote("{$key}=", '/');
-
-        if (File::exists($path)) {
-            $content = File::get($path);
-            if (preg_match("/^{$escaped}.*/m", $content)) {
-                $content = preg_replace("/^{$escaped}.*/m", "{$key}=\"{$value}\"", $content);
-            } else {
-                $content .= "\n{$key}=\"{$value}\"";
-            }
-            File::put($path, $content);
+        $envPath = base_path('.env');
+        if (!File::exists($envPath)) {
+            return response()->json(['success' => false, 'message' => '.env file tidak ditemukan.']);
         }
+
+        $envContent = File::get($envPath);
+
+        /**
+         * 1️⃣ MODE 1 — Tambah spreadsheet baru dari form (sheet_link + year)
+         */
+        if ($request->filled('sheet_link') && $request->filled('year')) {
+            $link = trim($request->input('sheet_link'));
+            $year = trim($request->input('year'));
+
+            // Ekstrak key dari URL
+            if (preg_match('/\/d\/([a-zA-Z0-9-_]+)/', $link, $m)) {
+                $key = $m[1];
+            } else {
+                return back()->withErrors(['Link tidak valid. Pastikan format URL benar.']);
+            }
+
+            $envVar = "GOOGLE_SPREADSHEET_ID_YEAR_{$year}";
+
+            // Ganti jika sudah ada, kalau belum tambahkan
+            if (preg_match("/^{$envVar}=.*$/m", $envContent)) {
+                $envContent = preg_replace("/^{$envVar}=.*$/m", "{$envVar}={$key}", $envContent);
+            } else {
+                $envContent .= "\n{$envVar}={$key}";
+            }
+
+            File::put($envPath, $envContent);
+
+            return redirect()->back()->with('success', "Spreadsheet tahun {$year} berhasil disimpan.");
+        }
+
+        /**
+         * 2️⃣ MODE 2 — AJAX: Aktifkan tahun tertentu
+         */
+        if ($request->isJson()) {
+            $data = $request->json()->all();
+            $year = $data['active_year'] ?? null;
+            $key = $data['spreadsheet_key'] ?? null;
+
+            if (!$year || !$key) {
+                return response()->json(['success' => false, 'message' => 'Data tidak lengkap.']);
+            }
+
+            // Update / tambah GOOGLE_SPREADSHEET_ID & ACTIVE_YEAR
+            $envContent = preg_replace('/^GOOGLE_SPREADSHEET_ID=.*$/m', "GOOGLE_SPREADSHEET_ID={$key}", $envContent);
+            if (!str_contains($envContent, 'GOOGLE_SPREADSHEET_ID=')) {
+                $envContent .= "\nGOOGLE_SPREADSHEET_ID={$key}";
+            }
+
+            $envContent = preg_replace('/^ACTIVE_YEAR=.*$/m', "ACTIVE_YEAR={$year}", $envContent);
+            if (!str_contains($envContent, 'ACTIVE_YEAR=')) {
+                $envContent .= "\nACTIVE_YEAR={$year}";
+            }
+
+            File::put($envPath, $envContent);
+
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'Permintaan tidak valid.']);
     }
 }

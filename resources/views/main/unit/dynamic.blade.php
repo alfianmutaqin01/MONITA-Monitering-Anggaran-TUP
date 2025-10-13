@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        {{-- Kolom tengah: dua kartu kecil (Operasional + Bangunan) --}}
+        {{-- Kolom tengah: dua kartu kecil (Operasional + Bang) --}}
         <div class="col-xl-4 col-md-12 mb-3">
             <div class="card dashnum-card dashnum-card-small overflow-hidden mb-3">
                 <span class="round bg-secondary small"></span>
@@ -53,7 +53,7 @@
                             <i class="text-success ti ti-building"></i>
                         </div>
                         <div>
-                            <h4 class="mb-1">{{ $sumByType['Bangunan'] ?? 'Rp 0' }}</h4>
+                            <h4 class="mb-1">{{ $sumByType['Bang'] ?? 'Rp 0' }}</h4>
                             <p class="mb-0 opacity-75 text-sm">Total Saldo Bang</p>
                         </div>
                     </div>
@@ -100,26 +100,46 @@
     <div class="card">
         <div class="card-header">
             <div class="d-flex justify-content-between align-items-center">
-                <h5>Daftar Anggaran {{ $namaUnit }}</h5>
-                <form method="get" class="d-flex align-items-center gap-2">
-                    <select name="tw" class="form-select form-select-sm" onchange="this.form.submit()">
+                <h5>Detail Anggaran {{ $namaUnit }}</h5>
+                <div class="header-action d-flex align-items-center">
+                    <button id="btnExport" class="btn btn-secondary">
+                        <i class="ti ti-database-export me-1"></i> Ekspor Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-header">
+            <div class="row mb-3 align-items-center">
+                <form id="filterForm" method="get" class="d-flex align-items-center gap-2">
+                    {{-- Filter Triwulan --}}
+                    <select name="tw" id="filterTw" class="form-select form-select-sm"
+                        style="font-size:0.9rem; padding:.5rem .8rem; min-width:150px;">
                         <option value="1" {{ $currentTw == 1 ? 'selected' : '' }}>Triwulan I</option>
                         <option value="2" {{ $currentTw == 2 ? 'selected' : '' }}>Triwulan II</option>
                         <option value="3" {{ $currentTw == 3 ? 'selected' : '' }}>Triwulan III</option>
                         <option value="4" {{ $currentTw == 4 ? 'selected' : '' }}>Triwulan IV</option>
                     </select>
+
+                    {{-- Filter Jenis Anggaran --}}
+                    <select name="type" id="filterType" class="form-select form-select-sm"
+                        style="font-size:0.9rem; padding:.5rem .8rem; min-width:150px;">
+                        <option value="all" {{ $currentType == 'all' ? 'selected' : '' }}>Semua Jenis</option>
+                        <option value="operasional" {{ $currentType == 'operasional' ? 'selected' : '' }}>Operasional
+                        </option>
+                        <option value="remun" {{ $currentType == 'remun' ? 'selected' : '' }}>Remun</option>
+                        <option value="bang" {{ $currentType == 'bang' ? 'selected' : '' }}>Bang</option>
+                        <option value="ntf" {{ $currentType == 'ntf' ? 'selected' : '' }}>NTF</option>
+                    </select>
                 </form>
             </div>
-        </div>
-
-        <div class="card-body">
             @if(!empty($errorMessage))
                 <div class="alert alert-danger">{{ $errorMessage }}</div>
             @endif
 
             <div class="table-responsive card">
                 <table class="table table-striped table-bordered align-middle">
-                    <thead class="bg-secondary text-white">
+                    <thead class="bg-secondary text-center">
                         <tr>
                             <th class="text-white">No</th>
                             <th class="text-white">Unit</th>
@@ -128,9 +148,9 @@
                             <th class="text-white">Akun</th>
                             <th class="text-white">Nama Akun</th>
                             <th class="text-white">Uraian</th>
-                            <th class="text-end text-white">Anggaran</th>
-                            <th class="text-end text-white">Realisasi</th>
-                            <th class="text-end text-white">Saldo</th>
+                            <th class="text-white">Anggaran</th>
+                            <th class="text-white">Realisasi</th>
+                            <th class="text-white">Saldo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,7 +164,8 @@
                                 <td>{{ $row['nama_akun'] }}</td>
 
                                 {{-- Uraian: wrap agar bisa turun baris --}}
-                                <td style="max-width: 350px; white-space: normal; word-wrap: break-word;">{{ $row['uraian'] }}
+                                <td style="max-width: 350px; white-space: normal; word-wrap: break-word;">
+                                    {{ $row['uraian'] }}
                                 </td>
 
                                 <td class="text-end">Rp {{ number_format($row['anggaran'] ?? 0, 0, ',', '.') }}</td>
@@ -154,7 +175,8 @@
                         @empty
                             <tr>
                                 <td colspan="10" class="text-center">Tidak ada data untuk unit ini pada triwulan
-                                    {{ $currentTw }}.</td>
+                                    {{ $currentTw }}.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -162,4 +184,22 @@
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("filterForm");
+            const tw = document.getElementById("filterTw");
+            const type = document.getElementById("filterType");
+
+            // Saat user ganti triwulan atau jenis, kirim form GET
+            tw.addEventListener("change", () => {
+                document.dispatchEvent(new Event('monita:loading:start'));
+                form.submit();
+            });
+
+            type.addEventListener("change", () => {
+                document.dispatchEvent(new Event('monita:loading:start'));
+                form.submit();
+            });
+        });
+    </script>
 @endsection

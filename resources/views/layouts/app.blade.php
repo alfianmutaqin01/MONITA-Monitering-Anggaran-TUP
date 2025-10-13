@@ -18,7 +18,7 @@
         id="main-font-link" />
 
     <!-- Icons -->
-    
+
     <link rel="stylesheet" href="{{ asset('berry/assets/fonts/phosphor/duotone/style.css') }}" />
     <link rel="stylesheet" href="{{ asset('berry/assets/fonts/tabler-icons.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('berry/assets/fonts/feather.css') }}" />
@@ -30,14 +30,34 @@
     <link rel="stylesheet" href="{{ asset('berry/assets/css/style.css') }}" id="main-style-link" />
     <link rel="stylesheet" href="{{ asset('berry/assets/css/style-preset.css') }}" />
     <style>
-        /* .pc-sidebar .nav-link.active {
-            background-color: #f0f0f0;
-            color: #212529;
-            border-radius: 8px;
-        } */
-         
+        .modal.fade .modal-dialog {
+            transform: translateY(-20px);
+            transition: all 0.25s ease-out;
+        }
+
+        .modal.show .modal-dialog {
+            transform: translateY(0);
+        }
+
+        .swal2-popup {
+            animation: fadeInZoom 0.25s ease-in-out;
+        }
+
+        @keyframes fadeInZoom {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
     </style>
 </head>
+<script src="{{ asset('js/monita/loading.js') }}"></script>
+
 
 <body>
     <!-- Loader -->

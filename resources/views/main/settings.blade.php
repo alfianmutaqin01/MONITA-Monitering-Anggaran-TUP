@@ -1,63 +1,161 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-xl-8 col-md-10 mx-auto">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Pengaturan Tahun Anggaran</h5>
-                    <i class="ti ti-settings fs-4"></i>
+<div class="card">
+    <div class="card-header bg-secondary d-flex justify-content-between align-items-center">
+        <h5 class="mb-0  text-white">Pengaturan Tahun Anggaran</h5>
+    </div>
+    <div class="card-body">
+
+        {{-- Panduan --}}
+        <div class="alert alert-info">
+            <h6 class="fw-bold mb-2"><i class="ti ti-info-circle me-2"></i>Panduan Menghubungkan Spreadsheet:</h6>
+            <ol class="mb-2">
+                <li>Buka file <strong>Google Sheets</strong> tahun anggaran yang ingin dikelola.</li>
+                <li>Klik tombol <strong>Bagikan</strong> di kanan atas.</li>
+                <li>Tambahkan akun berikut sebagai editor:<br>
+                    <code>keuangan-tup@monita-471208.iam.gserviceaccount.com</code>
+                </li>
+                <li>Pastikan izin akses diset ke <strong>Editor</strong>.</li>
+                <li>Salin <strong>link</strong> spreadsheet tersebut, lalu tempelkan ke form di bawah.</li>
+            </ol>
+        </div>
+
+        {{-- Form tambah atau ubah link spreadsheet --}}
+        <form action="{{ route('settings.update') }}" method="POST" class="mb-4">
+            @csrf
+            <div class="row align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label">Tahun Anggaran</label>
+                    <input type="number" name="year" class="form-control" placeholder="2025" required>
                 </div>
-                <div class="card-body">
-                    
-                    {{-- Panduan Akses Spreadsheet --}}
-                    <div class="alert alert-info">
-                        <h6 class="fw-bold mb-2"><i class="ti ti-info-circle me-2"></i>Panduan Menghubungkan Spreadsheet:</h6>
-                        <ol class="mb-2">
-                            <li>Buka file <strong>Google Sheets</strong> tahun anggaran yang ingin dikelola.</li>
-                            <li>Klik tombol <strong>Bagikan</strong> di kanan atas.</li>
-                            <li>Tambahkan akun berikut sebagai editor:<br>
-                                <code>keuangan-tup@monita-471208.iam.gserviceaccount.com</code>
-                            </li>
-                            <li>Pastikan izin akses diset ke <strong>Editor</strong>.</li>
-                            <li>Salin <strong>link</strong> spreadsheet tersebut, lalu tempelkan ke form di bawah.</li>
-                        </ol>
-                    </div>
-
-                    {{-- Form untuk ganti spreadsheet --}}
-                    <form method="POST" action="{{ route('settings.update') }}">
-                        @csrf
-                        <div class="mb-3">
-                            <label for="sheet_link" class="form-label fw-bold">Link Google Sheet Tahun Anggaran:</label>
-                            <div class="input-group">
-                                <input type="url" id="sheet_link" name="sheet_link" class="form-control" 
-                                       placeholder="https://docs.google.com/spreadsheets/d/xxxxxx/edit"
-                                       value="{{ old('sheet_link', $currentSheetLink) }}" required>
-                                <div class="input-group-text bg-light">
-                                    <div class="form-check form-switch mb-0">
-                                        <input class="form-check-input" type="checkbox" id="use_new_sheet" name="use_new_sheet" value="1">
-                                        <label class="form-check-label text-secondary small" for="use_new_sheet">
-                                            Gunakan link ini
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            <small class="text-muted d-block mt-1">
-                                Centang <strong>Gunakan link ini</strong> lalu klik <strong>Simpan</strong> untuk mengaktifkan tahun anggaran baru.
-                            </small>
-                        </div>
-
-                        <div class="text-end">
-                            <button type="submit" class="btn btn-secondary px-4">
-                                <i class="ti ti-device-floppy me-1"></i> Simpan Perubahan
-                            </button>
-                        </div>
-                    </form>
-
+                <div class="col-md-8">
+                    <label class="form-label">Link Google Sheet</label>
+                    <input type="url" name="sheet_link" class="form-control"
+                        placeholder="https://docs.google.com/spreadsheets/d/..." required>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button type="submit" class="btn btn-secondary w-100">
+                        <i class="ti ti-plus me-1"></i> Simpan
+                    </button>
                 </div>
             </div>
+        </form>
+
+        {{-- Daftar Spreadsheet Tahun --}}
+        <h6 class="fw-bold mb-3">Daftar Spreadsheet Aktif</h6>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="text-center" style="width: 80px;">Aktif</th>
+                        <th>Tahun</th>
+                        <th>ID Spreadsheet</th>
+                        <th>Pratinjau</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($sheetYears as $year => $id)
+                        <tr>
+                            <td class="text-center">
+                                <input type="checkbox"
+                                    class="form-check-input checkbox-active"
+                                    data-year="{{ $year }}"
+                                    data-key="{{ $id }}"
+                                    {{ env('ACTIVE_YEAR') == $year ? 'checked' : '' }}>
+                            </td>
+                            <td>{{ $year }}</td>
+                            <td><code>{{ $id }}</code></td>
+                            <td>
+                                <a href="https://docs.google.com/spreadsheets/d/{{ $id }}" target="_blank">
+                                    Lihat Spreadsheet
+                                </a>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">Belum ada data spreadsheet tersimpan</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 @endsection
+
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.checkbox-active').forEach(chk => {
+        chk.addEventListener('change', function () {
+            const year = this.dataset.year;
+            const sheetKey = this.dataset.key;
+
+            // pastikan hanya satu checkbox aktif
+            document.querySelectorAll('.checkbox-active').forEach(cb => {
+                if (cb !== this) cb.checked = false;
+            });
+
+            if (this.checked) {
+                Swal.fire({
+                    title: "Konfirmasi",
+                    text: `Jadikan tahun ${year} sebagai tahun aktif?`,
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, aktifkan",
+                    cancelButtonText: "Batal",
+                    confirmButtonColor: "#0d6efd",
+                    cancelButtonColor: "#6c757d",
+                    background: "#fff",
+                    customClass: {
+                        popup: 'rounded-3 shadow-lg',
+                        confirmButton: 'btn btn-primary mx-1',
+                        cancelButton: 'btn btn-secondary mx-1'
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        fetch("{{ route('settings.update') }}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                            },
+                            body: JSON.stringify({
+                                active_year: year,
+                                spreadsheet_key: sheetKey
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: "Berhasil!",
+                                    text: "Tahun aktif telah diperbarui.",
+                                    icon: "success",
+                                    confirmButtonColor: "#28a745",
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire("Gagal", data.message || "Terjadi kesalahan.", "error");
+                            }
+                        })
+                        .catch(() => {
+                            Swal.fire("Error", "Tidak dapat terhubung ke server.", "error");
+                        });
+                    } else {
+                        this.checked = false;
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+@endpush

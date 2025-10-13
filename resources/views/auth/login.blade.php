@@ -90,6 +90,7 @@
 
         .form-control {
             border-radius: var(--border-radius);
+            border-color: rgb(131, 131, 131);
             padding: 12px;
         }
 
