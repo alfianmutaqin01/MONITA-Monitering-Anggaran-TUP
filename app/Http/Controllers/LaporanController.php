@@ -32,93 +32,95 @@ class LaporanController extends Controller
      * Query param optional: ?unit=AKA (untuk filter)
      */
     public function index(Request $request, $tw = 1)
-    {
-        $service = $this->getGoogleSheetService();
+{
+    $service = $this->getGoogleSheetService();
 
-        // map triwulan ke nama sheet — sesuaikan jika nama sheet berbeda persis
-        $sheetMap = [
-            1 => 'RAW Data TW I',
-            2 => 'RAW Data TW II',
-            3 => 'RAW Data TW III',
-            4 => 'RAW Data TW IV',
-        ];
+    $sheetMap = [
+        1 => 'RAW Data TW I',
+        2 => 'RAW Data TW II',
+        3 => 'RAW Data TW III',
+        4 => 'RAW Data TW IV',
+    ];
 
-        $sheetName = $sheetMap[intval($tw)] ?? $sheetMap[1];
+    $sheetName = $sheetMap[intval($tw)] ?? $sheetMap[1];
+    $range = "{$sheetName}!A2:J700";
 
-        // range data RAW: kolom A..J, baris 2..700
-        $range = "{$sheetName}!A2:J700";
-
-        try {
-            $response = $service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues() ?? [];
-        } catch (Exception $e) {
-            // kirim error ke view (atau redirect dengan pesan)
-            return back()->withErrors(['gs_error' => $e->getMessage()]);
-        }
-
-        $data = [];
-        $no = 1;
-
-        foreach ($values as $row) {
-            // pastikan array panjang minimal 10 kolom
-            $row = array_pad($row, 10, '');
-
-            // skip jika seluruh baris kosong
-            if (count(array_filter($row)) === 0) {
-                continue;
-            }
-
-            $data[] = [
-    'no'         => $no++,
-    'kode_besar' => $row[0] ?? '',
-    'unit'       => $row[1] ?? '',
-    'tipe'       => $row[2] ?? '',
-    'drk_tup'    => $row[3] ?? '',
-    'akun'       => $row[4] ?? '',
-    'nama_akun'  => $row[5] ?? '',
-    'uraian'     => $row[6] ?? '',
-    // Gunakan parseNumber() yang diperbaiki di bawah
-    'anggaran'   => $this->parseNumber($row[7] ?? ''),
-    'realisasi'  => $this->parseNumber($row[8] ?? ''),
-    'saldo'      => $this->parseNumber($row[9] ?? ''),
-];
-        }
-
-        // ambil daftar unit dari sheet Users!B3:B100 untuk dropdown
-        $units = [];
-        try {
-            $unitResp = $service->spreadsheets_values->get($this->spreadsheetId, 'Users!B3:B100');
-            $unitVals = $unitResp->getValues() ?? [];
-            foreach ($unitVals as $r) {
-                if (!empty(trim((string)($r[0] ?? '')))) {
-                    $units[] = trim((string)$r[0]);
-                }
-            }
-            // unikkan urutkan
-            $units = array_values(array_unique($units));
-        } catch (Exception $e) {
-            // ignore, units tetap kosong
-            $units = [];
-        }
-
-        // optional filter berdasarkan unit (GET param)
-        $filterUnit = $request->query('unit');
-        if ($filterUnit) {
-            $data = array_values(array_filter($data, function ($d) use ($filterUnit) {
-                return strcasecmp(trim($d['unit']), trim($filterUnit)) === 0;
-            }));
-        }
-
-        // kirim ke view yang sesuai: resources/views/main/laporan/tw{n}.blade.php
-        $viewName = "main.laporan.tw{$tw}";
-
-        return view($viewName, [
-            'data' => $data,
-            'tw' => (int)$tw,
-            'units' => $units,
-            'filterUnit' => $filterUnit,
-        ]);
+    try {
+        $response = $service->spreadsheets_values->get($this->spreadsheetId, $range);
+        $values = $response->getValues() ?? [];
+    } catch (Exception $e) {
+        return back()->withErrors(['gs_error' => $e->getMessage()]);
     }
+
+    $data = [];
+    $no = 1;
+    foreach ($values as $row) {
+        $row = array_pad($row, 10, '');
+        if (count(array_filter($row)) === 0) continue;
+
+        $data[] = [
+            'no'         => $no++,
+            'kode_besar' => $row[0] ?? '',
+            'unit'       => $row[1] ?? '',
+            'tipe'       => $row[2] ?? '',
+            'drk_tup'    => $row[3] ?? '',
+            'akun'       => $row[4] ?? '',
+            'nama_akun'  => $row[5] ?? '',
+            'uraian'     => $row[6] ?? '',
+            'anggaran'   => $this->parseNumber($row[7] ?? ''),
+            'realisasi'  => $this->parseNumber($row[8] ?? ''),
+            'saldo'      => $this->parseNumber($row[9] ?? ''),
+        ];
+    }
+
+    // === AMBIL DAFTAR UNIT ===
+    $units = [];
+    try {
+        $unitResp = $service->spreadsheets_values->get($this->spreadsheetId, 'Users!B3:B100');
+        $unitVals = $unitResp->getValues() ?? [];
+        foreach ($unitVals as $r) {
+            if (!empty(trim((string)($r[0] ?? '')))) {
+                $units[] = trim((string)$r[0]);
+            }
+        }
+        $units = array_values(array_unique($units));
+    } catch (Exception $e) {
+        $units = [];
+    }
+
+    // === FILTER UNIT (jika ada) ===
+    $filterUnit = $request->query('unit');
+    if ($filterUnit) {
+        $data = array_values(array_filter($data, function ($d) use ($filterUnit) {
+            return strcasecmp(trim($d['unit']), trim($filterUnit)) === 0;
+        }));
+    }
+
+    // === ⭐ FILTER TYPE ANGGARAN (baru) ===
+    $filterType = $request->query('type', 'all'); // default: semua
+    if ($filterType !== 'all') {
+        $data = array_values(array_filter($data, function ($d) use ($filterType) {
+            $type = strtoupper($d['tipe'] ?? '');
+            return match ($filterType) {
+                'operasional' => str_contains($type, 'OPER'),
+                'remun'       => str_contains($type, 'REMUN'),
+                'bang'        => str_contains($type, 'BANG'),
+                'ntf'         => str_contains($type, 'NTF'),
+                default       => true,
+            };
+        }));
+    }
+
+    $viewName = "main.laporan.tw{$tw}";
+    return view($viewName, [
+        'data'        => $data,
+        'tw'          => (int)$tw,
+        'units'       => $units,
+        'filterUnit'  => $filterUnit,
+        'filterType'  => $filterType, // ⭐ kirim ke view
+    ]);
+}
+
 
     /**
      * Bersihkan dan konversi angka "Rp 1.234.567" -> float 1234567.0

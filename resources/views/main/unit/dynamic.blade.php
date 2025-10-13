@@ -111,28 +111,47 @@
 
         <div class="card-header">
             <div class="row mb-3 align-items-center">
-                <form id="filterForm" method="get" class="d-flex align-items-center gap-2">
-                    {{-- Filter Triwulan --}}
-                    <select name="tw" id="filterTw" class="form-select form-select-sm"
-                        style="font-size:0.9rem; padding:.5rem .8rem; min-width:150px;">
-                        <option value="1" {{ $currentTw == 1 ? 'selected' : '' }}>Triwulan I</option>
-                        <option value="2" {{ $currentTw == 2 ? 'selected' : '' }}>Triwulan II</option>
-                        <option value="3" {{ $currentTw == 3 ? 'selected' : '' }}>Triwulan III</option>
-                        <option value="4" {{ $currentTw == 4 ? 'selected' : '' }}>Triwulan IV</option>
-                    </select>
+                {{-- Kolom kiri: Filter Triwulan --}}
+                <div class="col-md-6">
+                    <form id="filterForm" method="get" class="d-flex gap-2 align-items-center">
+                        <select name="tw" id="filterTw" class="form-select form-select-sm"
+                            style="font-size:0.9rem; padding:.5rem .8rem; min-width:180px;">
+                            <option value="1" {{ $currentTw == 1 ? 'selected' : '' }}>Triwulan I</option>
+                            <option value="2" {{ $currentTw == 2 ? 'selected' : '' }}>Triwulan II</option>
+                            <option value="3" {{ $currentTw == 3 ? 'selected' : '' }}>Triwulan III</option>
+                            <option value="4" {{ $currentTw == 4 ? 'selected' : '' }}>Triwulan IV</option>
+                        </select>
+                    </form>
+                </div>
 
-                    {{-- Filter Jenis Anggaran --}}
-                    <select name="type" id="filterType" class="form-select form-select-sm"
-                        style="font-size:0.9rem; padding:.5rem .8rem; min-width:150px;">
+                {{-- Kolom kanan: Filter Jenis Anggaran --}}
+                <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                    <select name="type" id="filterType" class="form-select form-select-sm d-inline-block"
+                        style="font-size:0.9rem; padding:.5rem .8rem; min-width:180px;" form="filterForm">
                         <option value="all" {{ $currentType == 'all' ? 'selected' : '' }}>Semua Jenis</option>
-                        <option value="operasional" {{ $currentType == 'operasional' ? 'selected' : '' }}>Operasional
-                        </option>
+                        <option value="operasional" {{ $currentType == 'operasional' ? 'selected' : '' }}>Operasional</option>
                         <option value="remun" {{ $currentType == 'remun' ? 'selected' : '' }}>Remun</option>
                         <option value="bang" {{ $currentType == 'bang' ? 'selected' : '' }}>Bang</option>
                         <option value="ntf" {{ $currentType == 'ntf' ? 'selected' : '' }}>NTF</option>
                     </select>
-                </form>
+                </div>
             </div>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                    const form = document.getElementById("filterForm");
+                    const selects = document.querySelectorAll('#filterForm select, select[form="filterForm"]');
+
+                    // Otomatis submit + tampilkan loader Monita saat user mengganti filter
+                    selects.forEach(sel => {
+                        sel.addEventListener("change", () => {
+                            document.dispatchEvent(new Event('monita:loading:start'));
+                            form.submit();
+                        });
+                    });
+                });
+            </script>
+
             @if(!empty($errorMessage))
                 <div class="alert alert-danger">{{ $errorMessage }}</div>
             @endif
@@ -184,22 +203,4 @@
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const form = document.getElementById("filterForm");
-            const tw = document.getElementById("filterTw");
-            const type = document.getElementById("filterType");
-
-            // Saat user ganti triwulan atau jenis, kirim form GET
-            tw.addEventListener("change", () => {
-                document.dispatchEvent(new Event('monita:loading:start'));
-                form.submit();
-            });
-
-            type.addEventListener("change", () => {
-                document.dispatchEvent(new Event('monita:loading:start'));
-                form.submit();
-            });
-        });
-    </script>
 @endsection
