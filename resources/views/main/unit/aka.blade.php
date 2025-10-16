@@ -93,7 +93,7 @@
                 <h5>Daftar Anggaran Unit Labolatorium</h5>
                 <div class="header-action d-flex align-items-center">
                     <button class="btn btn-secondary">
-                        <i class="ti ti-database-export me-1"></i> Ekspor Data
+                        <i class="ti ti-database-export me-1"></i> Ekspor PDF
                     </button>
                 </div>
             </div>

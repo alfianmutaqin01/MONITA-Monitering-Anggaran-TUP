@@ -11,7 +11,7 @@
                     <div class="row">
                         <div class="col">
                             <div class="avtar avtar-lg bg-light-danger">
-                                <i class="ti ti-report-money"></i>
+                                <i class="ti bi bi-cash-coin"></i>
                             </div>
                         </div>
                     </div>
@@ -34,7 +34,7 @@
                 <div class="card-body p-3">
                     <div class="d-flex align-items-center">
                         <div class="avtar avtar-lg bg-light-danger me-3">
-                            <i class="ti ti-report-money text-danger"></i>
+                            <i class="bi bi-building-gear text-danger"></i>
                         </div>
                         <div>
                             <h4 class="mb-1">{{ $sumByType['Operasional'] ?? 'Rp 0' }}</h4>
@@ -103,7 +103,7 @@
                 <h5>Detail Anggaran {{ $namaUnit }}</h5>
                 <div class="header-action d-flex align-items-center">
                     <button id="btnExport" class="btn btn-secondary">
-                        <i class="ti ti-database-export me-1"></i> Ekspor Data
+                        <i class="bi bi-filetype-pdf me-1"></i> Ekspor PDF
                     </button>
                 </div>
             </div>

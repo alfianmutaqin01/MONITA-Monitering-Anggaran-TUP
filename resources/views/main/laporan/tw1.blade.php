@@ -7,7 +7,7 @@
                 <h5 class="mb-0">Laporan RAW Data Lengkap Triwulan {{ $tw }}</h5>
                 <div class="header-action d-flex align-items-center">
                     <button id="btnExport" class="btn btn-secondary">
-                        <i class="ti ti-database-export me-1"></i> Ekspor Data
+                        <i class="bi bi-filetype-pdf me-1"></i> Ekspor PDF
                     </button>
                 </div>
             </div>

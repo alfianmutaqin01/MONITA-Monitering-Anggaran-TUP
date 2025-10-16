@@ -18,11 +18,18 @@
             return (strpos($s, '%') === false) ? ($s . '%') : $s;
         }
     @endphp
-     
-     
+
+
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0">Summary Anggaran Triwulan {{ $tw }}</h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Summary Anggaran Triwulan {{ $tw }}</h5>
+                <div class="header-action d-flex align-items-center">
+                    <button id="btnExport" class="btn btn-secondary">
+                        <i class="bi bi-filetype-pdf me-1"></i> Ekspor PDF
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="card-body">
