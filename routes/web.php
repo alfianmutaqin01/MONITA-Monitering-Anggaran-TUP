@@ -8,6 +8,7 @@ use App\Http\Controllers\ManagementController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ExportController;
 
 // Redirect root ke login
 Route::get('/', function () {
@@ -42,4 +43,11 @@ Route::middleware(['auth.spreadsheet'])->group(function () {
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings/update', [SettingsController::class, 'update'])->name('settings.update');
+
+    Route::prefix('export')->group(function () {
+    Route::get('/laporan-triwulan/{tw}', [ExportController::class, 'laporanTriwulan'])->name('export.laporan-triwulan');
+    Route::get('/summary/{tw}/{type}', [ExportController::class, 'summary'])->name('export.summary');
+    Route::get('/unit/{kode}', [ExportController::class, 'detailUnit'])->name('export.unit');
+});
+
 });

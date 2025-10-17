@@ -102,9 +102,10 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h5>Detail Anggaran {{ $namaUnit }}</h5>
                 <div class="header-action d-flex align-items-center">
-                    <button id="btnExport" class="btn btn-secondary">
-                        <i class="bi bi-filetype-pdf me-1"></i> Ekspor PDF
-                    </button>
+                    <a href="{{ route('export.unit', ['kode' => $kode, 'tw' => $currentTw, 'type' => $currentType]) }}"
+                        target="_blank" class="btn btn-danger btn-sm">
+                        <i class="fa fa-file-pdf"></i> Ekspor PDF
+                    </a>
                 </div>
             </div>
         </div>

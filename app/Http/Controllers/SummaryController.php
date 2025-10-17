@@ -16,115 +16,86 @@ class SummaryController extends Controller
         $this->spreadsheetId = env('GOOGLE_SPREADSHEET_ID');
     }
 
-    /**
-     * Inisialisasi Google Sheets client
-     */
-    private function getGoogleSheetService()
+    /** 🔧 Inisialisasi Google Sheets client */
+    private function getGoogleSheetService(): Google_Service_Sheets
     {
         $client = new Google_Client();
         $client->setApplicationName('MONITA - Summary Anggaran');
-        // READONLY sudah cukup untuk menampilkan summary
-        $client->setScopes([Google_Service_Sheets::SPREADSHEETS_READONLY]);
+        $client->setScopes(Google_Service_Sheets::SPREADSHEETS_READONLY);
         $client->setAuthConfig(storage_path('app/credentials/service-account.json'));
 
         return new Google_Service_Sheets($client);
     }
 
-    /**
-     * Parse angka dari cell (meng-handle titik ribuan, koma desimal, dan tanda kurung untuk negatif)
-     */
-    private function parseNumber($v)
+    /** 💡 Parse angka dari cell */
+    private function parseNumber($v): float
     {
-        if ($v === null || $v === '') return 0;
-        $v = trim((string) $v);
-
-        // jika format (1.234) => negatif
+        if (!$v) return 0;
+        $v = trim((string)$v);
         $negative = false;
+
+        // format (1234)
         if (preg_match('/^\((.*)\)$/', $v, $m)) {
             $negative = true;
             $v = $m[1];
         }
 
-        // bersihkan karakter selain digit, koma dan titik dan minus
-        $clean = preg_replace('/[^0-9\.\,-]/', '', $v);
-        // beberapa cell menggunakan koma sebagai pemisah desimal, tapi di data kita umumnya menggunakan titik sebagai ribuan
-        // langkah: hapus titik (ribuan), ubah koma ke titik jika ada
-        $clean = str_replace('.', '', $clean);
-        $clean = str_replace(',', '.', $clean);
-
-        if ($clean === '' || !is_numeric($clean)) return 0;
-
-        $num = (float) $clean;
+        $v = str_replace(['.', ','], ['', '.'], $v);
+        $num = is_numeric($v) ? (float)$v : 0;
         return $negative ? -$num : $num;
     }
 
-    /**
-     * index: muat data untuk triwulan {1..4}
-     */
+    /** 📄 Tampilkan summary TW */
     public function index($tw)
     {
-        $tw = intval($tw);
-        if ($tw < 1 || $tw > 4) $tw = 1;
+        $tw = max(1, min(4, (int)$tw)); // clamp 1–4
 
-        // Pastikan nama sheet sama persis dengan tab di spreadsheet Anda
-        $sheetNames = [
+        $sheetName = match ($tw) {
             1 => 'SUMMARY TW I',
             2 => 'SUMMARY TW II',
             3 => 'SUMMARY TW III',
             4 => 'SUMMARY TW IV',
-        ];
-        $sheetName = $sheetNames[$tw] ?? $sheetNames[1];
+        };
 
-        // Range sesuai instruksi: C6 sampai T39
         $range = "{$sheetName}!C6:T39";
 
         try {
-            $service = $this->getGoogleSheetService();
-            $response = $service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues() ?? [];
+            $values = $this->getGoogleSheetService()
+                ->spreadsheets_values
+                ->get($this->spreadsheetId, $range)
+                ->getValues() ?? [];
         } catch (Exception $e) {
-            // Kembalikan pesan error yang jelas agar mudah ditangani
             return back()->withErrors(['gsheet' => 'Gagal memuat data summary: ' . $e->getMessage()]);
         }
 
         $data = [];
-        $no = 1;
-
-        foreach ($values as $row) {
-            // jika seluruh sel baris kosong, skip
-            if (empty(array_filter($row))) continue;
-
-            // pastikan ada 22 elemen (pad kalau kurang)
-            $row = array_pad($row, 22, '');
+        foreach ($values as $i => $r) {
+            if (empty(array_filter($r))) continue;
+            $r = array_pad($r, 22, '');
 
             $data[] = [
-                'no'            => $no++,
-                'kode_pp'       => $row[0] ?? '',
-                'nama_pp'       => $row[1] ?? '',
-                'bidang'        => $row[2] ?? '',
-                'anggaran_tw'   => $this->parseNumber($row[3] ?? ''),
-                'realisasi_tw'  => $this->parseNumber($row[4] ?? ''),
-                'saldo_tw'      => $this->parseNumber($row[5] ?? ''),
-                'serapan_all'   => trim($row[6] ?? ''),
-                'rka_operasi'   => $this->parseNumber($row[7] ?? ''),
-                'real_operasi'  => $this->parseNumber($row[8] ?? ''),
-                'saldo_operasi' => $this->parseNumber($row[9] ?? ''),
-                'serapan_oper'  => trim($row[10] ?? ''),
-                'rka_bang'      => $this->parseNumber($row[11] ?? ''),
-                'real_bang'     => $this->parseNumber($row[12] ?? ''),
-                'sisa_bang'     => $this->parseNumber($row[13] ?? ''),
-                'serapan_bang'  => trim($row[14] ?? ''),
-                'rkm_operasi'   => $this->parseNumber($row[15] ?? ''),
-                'real_rkm'      => $this->parseNumber($row[16] ?? ''),
-                'persen_rkm'    => trim($row[17] ?? ''),
+                'no'            => $i + 1,
+                'kode_pp'       => $r[0],
+                'nama_pp'       => $r[1],
+                'bidang'        => $r[2],
+                'anggaran_tw'   => $this->parseNumber($r[3]),
+                'realisasi_tw'  => $this->parseNumber($r[4]),
+                'saldo_tw'      => $this->parseNumber($r[5]),
+                'serapan_all'   => trim($r[6]),
+                'rka_operasi'   => $this->parseNumber($r[7]),
+                'real_operasi'  => $this->parseNumber($r[8]),
+                'saldo_operasi' => $this->parseNumber($r[9]),
+                'serapan_oper'  => trim($r[10]),
+                'rka_bang'      => $this->parseNumber($r[11]),
+                'real_bang'     => $this->parseNumber($r[12]),
+                'sisa_bang'     => $this->parseNumber($r[13]),
+                'serapan_bang'  => trim($r[14]),
+                'rkm_operasi'   => $this->parseNumber($r[15]),
+                'real_rkm'      => $this->parseNumber($r[16]),
+                'persen_rkm'    => trim($r[17]),
             ];
         }
 
-        $viewName = "main.summary.tw{$tw}";
-        if (!view()->exists($viewName)) {
-            $viewName = 'main.summary';
-        }
-
-        return view($viewName, compact('data', 'tw'));
+        return view("main.summary.tw{$tw}", compact('data', 'tw'));
     }
 }

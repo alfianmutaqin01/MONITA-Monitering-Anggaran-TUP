@@ -36,7 +36,8 @@ class DashboardController extends Controller
     }
 
     public function index(Request $request)
-    {
+{
+    try {
         $service = $this->getGoogleSheetService();
 
         // 🔹 Ambil saldo TW
@@ -57,14 +58,13 @@ class DashboardController extends Controller
         // 🔹 Ambil triwulan dari query
         $currentTw = (int) $request->query('tw', 0);
 
-        // 🔹 Redirect otomatis jika belum ada parameter tw
         if ($currentTw === 0) {
             return redirect()->route('dashboard', ['tw' => $defaultTw]);
         }
 
         $sheetName = "SUMMARY TW " . $this->toRoman($currentTw);
 
-        // 🔹 Range: C (Kode), T (Serapan), M (RKA), Q (operasional)
+        // 🔹 Range yang ingin diambil
         $startRow = 6;
         $endRow = 55;
         $ranges = [
@@ -74,6 +74,7 @@ class DashboardController extends Controller
             "{$sheetName}!Q{$startRow}:Q{$endRow}",
         ];
 
+        // 🔹 Ambil batch data
         $batch = $service->spreadsheets_values->batchGet($this->spreadsheetId, [
             'ranges' => $ranges,
             'valueRenderOption' => 'UNFORMATTED_VALUE'
@@ -83,6 +84,12 @@ class DashboardController extends Controller
         $serapanValues = $batch->getValueRanges()[1]->getValues() ?? [];
         $rkaValues = $batch->getValueRanges()[2]->getValues() ?? [];
         $operasionalValues = $batch->getValueRanges()[3]->getValues() ?? [];
+
+        if (empty($kodeValues)) {
+            return redirect()
+                ->route('settings.index')
+                ->with('warning', 'Data pada Google Sheet saat ini belum lengkap. Mohon lengkapi dahulu sebelum membuka dashboard.');
+        }
 
         $get = fn($arr, $i) => isset($arr[$i][0]) ? $arr[$i][0] : '';
 
@@ -110,7 +117,20 @@ class DashboardController extends Controller
             'dataOperasional' => array_column($chartData, 'operasional'),
             'currentTw' => $currentTw
         ]);
+    } catch (\Google\Service\Exception $e) {
+        // 🔸 Tangkap error dari Google API
+        return redirect()
+            ->route('settings.index')
+            ->with('error', 'Terjadi kesalahan saat mengambil data dari Google Sheets. 
+                Pastikan file spreadsheet tahun aktif sudah lengkap untuk sheet: ' . $this->spreadsheetId);
+    } catch (\Exception $e) {
+        // 🔸 Tangkap error umum
+        return redirect()
+            ->route('settings.index')
+            ->with('error', 'Dashboard gagal dimuat: ' . $e->getMessage());
     }
+}
+
 
     private function normalizePercent($raw)
     {

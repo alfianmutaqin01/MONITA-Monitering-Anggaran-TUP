@@ -6,13 +6,13 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Laporan RAW Data Lengkap Triwulan {{ $tw }}</h5>
                 <div class="header-action d-flex align-items-center">
-                    <button id="btnExport" class="btn btn-secondary">
+                    <a href="{{ route('export.laporan-triwulan', ['tw' => $tw, 'unit' => request('unit'), 'type' => request('type')]) }}"
+                        target="_blank" class="btn btn-secondary">
                         <i class="bi bi-filetype-pdf me-1"></i> Ekspor PDF
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
-
         <div class="card-body">
             <div class="row mb-3 align-items-center">
                 <div class="col-md-6">

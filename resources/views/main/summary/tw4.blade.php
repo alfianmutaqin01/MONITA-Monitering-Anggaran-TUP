@@ -18,11 +18,30 @@
             return (strpos($s, '%') === false) ? ($s . '%') : $s;
         }
     @endphp
-     
-     
+
+
     <div class="card">
         <div class="card-header">
-            <h5 class="mb-0">Summary Anggaran Triwulan {{ $tw }}</h5>
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Summary Anggaran Triwulan {{ $tw }}</h5>
+                <div class="header-action d-flex align-items-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                            <i class="bi bi-filetype-pdf me-1"></i> Ekspor PDF
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rka']) }}"
+                                    target="_blank">Realisasi RKA</a></li>
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rkm']) }}"
+                                    target="_blank">Realisasi RKM</a></li>
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'pengembangan']) }}"
+                                    target="_blank">Realisasi RKA Pengembangan</a></li>
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'all']) }}"
+                                    target="_blank">Cetak Semua</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card-body">
@@ -49,10 +68,6 @@
                             <th class="text-white">RKM OPERASI</th>
                             <th class="text-white">REAL RKM</th>
                             <th class="text-white">% RKM</th>
-                            <th class="text-white">AKM PENDAPATAN</th>
-                            <th class="text-white">AKM BEBAN</th>
-                            <th class="text-white">SHU</th>
-                            <th class="text-white">OR</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -77,10 +92,6 @@
                                 <td class="text-end">{{ ($row['rkm_operasi']) }}</td>
                                 <td class="text-end">{{ ($row['real_rkm']) }}</td>
                                 <td class="text-center">{{ formatPercentCell($row['persen_rkm']) }}</td>
-                                <td class="text-end">{{ formatRupiah($row['akm_pend']) }}</td>
-                                <td class="text-end">{{ formatRupiah($row['akm_beban']) }}</td>
-                                <td class="text-end">{{ formatRupiah($row['shu']) }}</td>
-                                <td class="text-center">{{ $row['or'] }}</td>
                             </tr>
                         @empty
                             <tr>
