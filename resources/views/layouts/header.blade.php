@@ -3,8 +3,16 @@
         <!-- Kiri: tombol sidebar dan greeting -->
         <div class="me-auto pc-mob-drp d-flex align-items-center">
             <ul class="list-unstyled d-flex mb-0">
+                {{-- Tombol untuk menyembunyikan sidebar di desktop --}}
                 <li class="pc-h-item header-mobile-collapse">
                     <a href="#" class="pc-head-link head-link-secondary ms-0" id="sidebar-hide">
+                        <i class="ti ti-menu-2"></i>
+                    </a>
+                </li>
+                
+                {{-- 🚩 PERBAIKAN KRITIS: Tombol untuk memunculkan sidebar di mobile --}}
+                <li class="pc-h-item pc-sidebar-popup d-inline-flex d-md-none">
+                    <a href="#" class="pc-head-link head-link-secondary ms-0" id="mobile-collapse">
                         <i class="ti ti-menu-2"></i>
                     </a>
                 </li>

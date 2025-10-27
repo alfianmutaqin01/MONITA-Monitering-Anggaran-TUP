@@ -4,6 +4,7 @@
 <head>
     <title>@yield('title', 'Dashboard | MONITA')</title>
     <meta charset="utf-8" />
+    {{-- PERBAIKAN: Menambahkan minimal-ui untuk konsistensi mobile --}}
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimal-ui" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="description" content="MONITA - Monitoring Anggaran Telkom University Purwokerto" />
@@ -18,7 +19,6 @@
         id="main-font-link" />
 
     <!-- Icons -->
-
     <link rel="stylesheet" href="{{ asset('berry/assets/fonts/phosphor/duotone/style.css') }}" />
     <link rel="stylesheet" href="{{ asset('berry/assets/fonts/tabler-icons.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('berry/assets/fonts/feather.css') }}" />
@@ -54,10 +54,20 @@
                 transform: scale(1);
             }
         }
+        
+        /* CSS Anchor Tambahan: Memastikan layout fluid */
+        .pc-container, .pc-content {
+            min-width: 100%; 
+            box-sizing: border-box;
+        }
+        @media (max-width: 991.98px) {
+             /* Pastikan sidebar ter-trigger di mobile */
+            .pc-container.pc-sidebar-active {
+                overflow: hidden;
+            }
+        }
     </style>
 </head>
-<script src="{{ asset('js/monita/loading.js') }}"></script>
-
 
 <body>
     <!-- Loader -->
@@ -66,6 +76,9 @@
             <div class="loader-fill"></div>
         </div>
     </div>
+    
+    {{-- PERBAIKAN: Memindahkan loading.js ke body setelah loader agar elemen dom dimuat --}}
+    <script src="{{ asset('js/monita/loading.js') }}"></script> 
 
     <!-- Sidebar -->
     @include('layouts.sidebar')
@@ -98,14 +111,15 @@
     <!-- Page-specific JS -->
     @stack('scripts')
 
+    {{-- PERBAIKAN: Mengganti script inisialisasi yang berulang dengan feather.replace() --}}
     <script>
-        // Default layout settings
-        layout_change('light');
-        font_change('Roboto');
-        change_box_container('false');
-        layout_caption_change('true');
-        layout_rtl_change('false');
-        preset_change('preset-1');
+        if (typeof layout_change === 'function') layout_change('light');
+        if (typeof font_change === 'function') font_change('Roboto');
+        if (typeof change_box_container === 'function') change_box_container('false'); // Memastikan Layout Fluid
+        if (typeof layout_caption_change === 'function') layout_caption_change('true');
+        if (typeof layout_rtl_change === 'function') layout_rtl_change('false');
+        if (typeof preset_change === 'function') preset_change('preset-1');
+
         feather.replace();
     </script>
 </body>

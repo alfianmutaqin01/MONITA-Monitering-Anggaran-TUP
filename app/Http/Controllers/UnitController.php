@@ -6,9 +6,12 @@ use Illuminate\Http\Request;
 use Google_Client;
 use Google_Service_Sheets;
 use Carbon\Carbon;
+use App\Traits\FormatDataTrait; // Pastikan Trait ini ada dan berisi parseNumber/toRoman
 
 class UnitController extends Controller
 {
+    use FormatDataTrait;
+
     protected $spreadsheetId;
 
     public function __construct()
@@ -29,61 +32,7 @@ class UnitController extends Controller
     }
 
     /**
-     * Konversi angka (1..4) ke Romawi
-     */
-    private function toRoman($number)
-    {
-        return [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV'][$number] ?? 'I';
-    }
-
-    /**
-     * Robust parsing number dari string Excel / Google Sheets
-     * Meng-handle: "Rp 1.234.567", "(1.234.567)", "1.234.567,00", "66,67%", "0", dll
-     * Mengembalikan float.
-     */
-    private function parseNumber($val)
-    {
-        if ($val === null || $val === '') return 0.0;
-        if (is_numeric($val)) return (float)$val;
-
-        $s = trim((string)$val);
-
-        // tanda negatif dalam kurung: (1.234) => -1234
-        $negative = false;
-        if (preg_match('/^\((.*)\)$/', $s, $m)) {
-            $s = $m[1];
-            $negative = true;
-        }
-
-        // hilangkan rp / persen / spasi / NBSP
-        $s = str_ireplace(['rp', '%', ' ', "\xc2\xa0"], '', $s);
-
-        // jika ada titik dan koma -> anggap titik ribuan, koma desimal
-        if (strpos($s, '.') !== false && strpos($s, ',') !== false) {
-            $s = str_replace('.', '', $s);
-            $s = str_replace(',', '.', $s);
-        } elseif (strpos($s, ',') !== false && strpos($s, '.') === false) {
-            // hanya koma -> koma sebagai desimal
-            $s = str_replace(',', '.', $s);
-        } elseif (strpos($s, '.') !== false && strpos($s, ',') === false) {
-            // hanya titik -> titik kemungkinan ribuan -> hapus titik
-            $s = str_replace('.', '', $s);
-        }
-
-        // hapus karakter selain digit, minus dan titik
-        $s = preg_replace('/[^0-9\.\-]/', '', $s);
-
-        if ($s === '' || $s === '.' || $s === '-') return 0.0;
-
-        $num = (float)$s;
-        if ($negative) $num = -$num;
-
-        return $num;
-    }
-
-    /**
      * Ambil daftar unit (kode => nama) dari tab Users kolom B:C
-     * safe: jika error (permission atau sheet tidak ada) kembalikan array kosong
      */
     private function getUnitsFromSheet($service)
     {
@@ -102,145 +51,134 @@ class UnitController extends Controller
             }
             return $map;
         } catch (\Exception $e) {
-            // jangan menimbulkan error fatal saat Users tidak bisa dibaca
             return [];
         }
     }
 
     /**
      * Tampilkan halaman detail unit
-     * Route harus mengirimkan session('user_data') yang berisi minimal ['role' => 'admin'|'user', 'kode_pp' => 'LAB'...]
      */
     public function show(Request $request, $kode)
-{
-    $service = $this->getGoogleSheetService();
+    {
+        $service = $this->getGoogleSheetService();
 
-    // cek session user_data terlebih dahulu
-    $user = session('user_data', null);
-    if (!$user) {
-        abort(403, 'User tidak terautentikasi (session user_data hilang).');
-    }
+        // === Cek Akses ===
+        $user = session('user_data', null);
+        if (!$user) {
+            abort(403, 'User tidak terautentikasi (session user_data hilang).');
+        }
+        if (($user['role'] ?? '') !== 'admin' && (($user['kode_pp'] ?? '') !== $kode)) {
+            abort(403, 'Anda tidak memiliki akses ke unit ini.');
+        }
 
-    // admin boleh akses semua, user hanya unit sendiri
-    if (($user['role'] ?? '') !== 'admin' && (($user['kode_pp'] ?? '') !== $kode)) {
-        abort(403, 'Anda tidak memiliki akses ke unit ini.');
-    }
+        // ambil daftar unit
+        $units = $this->getUnitsFromSheet($service);
+        $namaUnit = $units[$kode] ?? strtoupper($kode);
 
-    // ambil daftar unit (fallback jika gagal)
-    $units = $this->getUnitsFromSheet($service);
-    $namaUnit = $units[$kode] ?? strtoupper($kode);
+        // === Tentukan Triwulan (Filter Waktu) ===
+        $month = Carbon::now()->month;
+        $defaultTw = ($month <= 3) ? 1 : (($month <= 6) ? 2 : (($month <= 9) ? 3 : 4));
+        $currentTw = (int)$request->query('tw', $defaultTw);
+        $currentTw = max(1, min(4, $currentTw));
 
-    // === FILTERS ===
-    $month = Carbon::now()->month;
-    $defaultTw = ($month <= 3) ? 1 : (($month <= 6) ? 2 : (($month <= 9) ? 3 : 4));
-    $currentTw = (int)$request->query('tw', $defaultTw);
-    $currentTw = max(1, min(4, $currentTw));
+        $currentType = $request->query('type', 'all'); // Filter Jenis Anggaran
 
-    $currentType = $request->query('type', 'all'); // default: semua jenis
+        $sheetName = "RAW Data TW " . $this->toRoman($currentTw);
+        $startRow = 2;
+        $endRow = 700;
+        $range = "{$sheetName}!B{$startRow}:J{$endRow}";
 
-    $sheetName = "RAW Data TW " . $this->toRoman($currentTw);
-    $startRow = 2;
-    $endRow = 700;
-    $range = "{$sheetName}!B{$startRow}:J{$endRow}";
+        try {
+            $resp = $service->spreadsheets_values->get(
+                $this->spreadsheetId,
+                $range,
+                ['valueRenderOption' => 'UNFORMATTED_VALUE']
+            );
+            $values = $resp->getValues() ?? [];
+        } catch (\Exception $e) {
+            // Return view error dengan data nol
+            return view('main.unit.dynamic', [
+                'kode' => $kode,
+                'namaUnit' => $namaUnit,
+                'filtered' => [],
+                'sumByType' => ['Operasional' => 'Rp 0', 'Remun' => 'Rp 0', 'NTF' => 'Rp 0', 'Bang' => 'Rp 0'],
+                'totalAll' => 'Rp 0',
+                'currentTw' => $currentTw,
+                'currentType' => $currentType,
+                'errorMessage' => 'Gagal terhubung ke Google Sheets: ' . $e->getMessage()
+            ]);
+        }
 
-    try {
-        $resp = $service->spreadsheets_values->get(
-            $this->spreadsheetId,
-            $range,
-            ['valueRenderOption' => 'UNFORMATTED_VALUE']
-        );
-        $values = $resp->getValues() ?? [];
-    } catch (\Exception $e) {
-        return view('main.unit.dynamic', [
-            'kode' => $kode,
-            'namaUnit' => $namaUnit,
-            'filtered' => [],
-            'sumByType' => [
-                'Operasional' => 'Rp 0',
-                'Remun' => 'Rp 0',
-                'NTF' => 'Rp 0',
-                'Bang' => 'Rp 0',
-            ],
-            'totalAll' => 'Rp 0',
-            'currentTw' => $currentTw,
-            'currentType' => $currentType,
-            'errorMessage' => 'Gagal terhubung ke Google Sheets: ' . $e->getMessage()
-        ]);
-    }
+        // === TAHAP 1: EKSTRAKSI DATA HANYA BERDASARKAN KODE UNIT DAN HITUNG TOTAL UNTUK CARD ===
+        $rawUnitData = [];
+        $totalAll = 0;
+        $sumByType = ['Operasional' => 0, 'Remun' => 0, 'NTF' => 0, 'Bang' => 0];
 
-    // === FILTER DATA ===
-    $filtered = [];
-    foreach ($values as $r) {
-        $r = array_pad($r, 9, '');
-        $unitCol = strtoupper(trim($r[0] ?? ''));
-        if ($unitCol !== strtoupper($kode)) continue;
+        foreach ($values as $r) {
+            $r = array_pad($r, 9, '');
+            $unitCol = strtoupper(trim($r[0] ?? ''));
+            if ($unitCol !== strtoupper($kode)) continue;
 
-        $tipe = trim($r[1] ?? '');
-        $drk_tup = trim($r[2] ?? '');
-        $akun = trim($r[3] ?? '');
-        $nama_akun = trim($r[4] ?? '');
-        $uraian = trim($r[5] ?? '');
-        $anggaran = $this->parseNumber($r[6] ?? '');
-        $realisasi = $this->parseNumber($r[7] ?? '');
-        $saldo = $this->parseNumber($r[8] ?? '');
+            // Parsing nilai untuk perhitungan total
+            $tipe = trim($r[1] ?? '');
+            $saldo = $this->parseNumber($r[8] ?? '');
+            
+            // Simpan data mentah unit
+            $rawUnitData[] = [
+                'unit' => $unitCol,
+                'tipe' => $tipe,
+                'drk_tup' => trim($r[2] ?? ''),
+                'akun' => trim($r[3] ?? ''),
+                'nama_akun' => trim($r[4] ?? ''),
+                'uraian' => trim($r[5] ?? ''),
+                'anggaran' => $this->parseNumber($r[6] ?? ''),
+                'realisasi' => $this->parseNumber($r[7] ?? ''),
+                'saldo' => $saldo, // Sudah berupa float
+            ];
 
-        // filter per jenis anggaran jika dipilih
-        $match = true;
-        if ($currentType !== 'all') {
-            $typeUpper = strtoupper($tipe);
-            if (
-                ($currentType === 'operasional' && strpos($typeUpper, 'OPER') === false) ||
-                ($currentType === 'remun' && strpos($typeUpper, 'REMUN') === false) ||
-                ($currentType === 'bang' && strpos($typeUpper, 'BANG') === false) ||
-                ($currentType === 'ntf' && strpos($typeUpper, 'NTF') === false)
-            ) {
-                $match = false;
+            // Hitung Total Saldo untuk Card (Logika ini TIDAK boleh terpengaruh filter $currentType)
+            $totalAll += $saldo;
+            $label = strtoupper($tipe);
+            if (strpos($label, 'OPER') !== false) $sumByType['Operasional'] += $saldo;
+            elseif (strpos($label, 'REMUN') !== false) $sumByType['Remun'] += $saldo;
+            elseif (strpos($label, 'NTF') !== false) $sumByType['NTF'] += $saldo;
+            elseif (strpos($label, 'BANG') !== false) $sumByType['Bang'] += $saldo;
+        }
+
+        // Format Total Saldo untuk Card
+        $sumByTypeFormatted = array_map(fn($v) => 'Rp ' . number_format($v, 0, ',', '.'), $sumByType);
+        $totalAllFormatted = 'Rp ' . number_format($totalAll, 0, ',', '.');
+
+
+        // === TAHAP 2: FILTER DATA RINCI UNTUK TABEL (Memerlukan $currentType) ===
+        $filtered = [];
+        $typeFilterMatch = fn($typeUpper, $filter) => match ($filter) {
+            'operasional' => strpos($typeUpper, 'OPER') !== false,
+            'remun' => strpos($typeUpper, 'REMUN') !== false,
+            'bang' => strpos($typeUpper, 'BANG') !== false,
+            'ntf' => strpos($typeUpper, 'NTF') !== false,
+            default => true, // 'all'
+        };
+
+        foreach ($rawUnitData as $r) {
+            $tipeUpper = strtoupper($r['tipe']);
+            
+            if ($currentType === 'all' || $typeFilterMatch($tipeUpper, $currentType)) {
+                // Beri nomor sebelum dimasukkan ke filtered
+                $r['no'] = count($filtered) + 1;
+                $filtered[] = $r;
             }
         }
 
-        if ($match) {
-            $filtered[] = [
-                'unit' => $unitCol,
-                'tipe' => $tipe,
-                'drk_tup' => $drk_tup,
-                'akun' => $akun,
-                'nama_akun' => $nama_akun,
-                'uraian' => $uraian,
-                'anggaran' => $anggaran,
-                'realisasi' => $realisasi,
-                'saldo' => $saldo,
-            ];
-        }
+        // === TAHAP AKHIR: Kirim Data ke View ===
+        return view('main.unit.dynamic', [
+            'kode' => $kode,
+            'namaUnit' => $namaUnit,
+            'filtered' => $filtered, // Data rinci yang sudah difilter
+            'sumByType' => $sumByTypeFormatted, // Data kartu ringkasan (TOTAL, tidak terfilter jenis)
+            'totalAll' => $totalAllFormatted,   // Data kartu ringkasan (TOTAL, tidak terfilter jenis)
+            'currentTw' => $currentTw,
+            'currentType' => $currentType,
+        ]);
     }
-
-    // beri nomor
-    foreach ($filtered as $i => &$row) $row['no'] = $i + 1;
-
-    // total per tipe
-    $sumByType = ['Operasional' => 0, 'Remun' => 0, 'NTF' => 0, 'Bang' => 0];
-    $totalAll = 0;
-    foreach ($filtered as $r) {
-        $s = (float)$r['saldo'];
-        $totalAll += $s;
-        $label = strtoupper(trim($r['tipe'] ?? ''));
-        if (strpos($label, 'OPER') !== false) $sumByType['Operasional'] += $s;
-        elseif (strpos($label, 'REMUN') !== false) $sumByType['Remun'] += $s;
-        elseif (strpos($label, 'NTF') !== false) $sumByType['NTF'] += $s;
-        elseif (strpos($label, 'BANG') !== false) $sumByType['Bang'] += $s;
-    }
-
-    $sumByTypeFormatted = array_map(fn($v) => 'Rp ' . number_format($v, 0, ',', '.'), $sumByType);
-    $totalAllFormatted = 'Rp ' . number_format($totalAll, 0, ',', '.');
-
-    return view('main.unit.dynamic', [
-        'kode' => $kode,
-        'namaUnit' => $namaUnit,
-        'filtered' => $filtered,
-        'sumByType' => $sumByTypeFormatted,
-        'totalAll' => $totalAllFormatted,
-        'currentTw' => $currentTw,
-        'currentType' => $currentType,
-    ]);
-}
-
-}
+} 

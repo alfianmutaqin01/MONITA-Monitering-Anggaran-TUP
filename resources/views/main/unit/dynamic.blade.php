@@ -16,7 +16,6 @@
                         </div>
                     </div>
 
-                    {{-- totalAll diasumsikan sudah berformat "Rp ..." oleh controller --}}
                     <span class="text-dark d-block f-34 f-w-500 my-2">
                         {{ $totalAll ?? 'Rp 0' }}
                         <i class="ti ti-arrow-up-right-circle opacity-50"></i>
@@ -96,6 +95,7 @@
             </div>
         </div>
     </div>
+    
     {{-- Tabel Anggaran --}}
     <div class="card">
         <div class="card-header">
@@ -103,15 +103,16 @@
                 <h5>Detail Anggaran {{ $namaUnit }}</h5>
                 <div class="header-action d-flex align-items-center">
                     <a href="{{ route('export.unit', ['kode' => $kode, 'tw' => $currentTw, 'type' => $currentType]) }}"
-                        target="_blank" class="btn btn-danger btn-sm">
-                        <i class="fa fa-file-pdf"></i> Ekspor PDF
+                        target="_blank" class="btn btn-secondary">
+                        <i class="bi bi-filetype-pdf me-1"></i> Ekspor PDF
                     </a>
                 </div>
             </div>
         </div>
 
         <div class="card-header">
-            <div class="row mb-3 align-items-center">
+            {{-- 🚩 Tambah margin bawah untuk memisahkan dari tabel di bawahnya --}}
+            <div class="row mb-4 align-items-center"> 
                 {{-- Kolom kiri: Filter Triwulan --}}
                 <div class="col-md-6">
                     <form id="filterForm" method="get" class="d-flex gap-2 align-items-center">
@@ -157,7 +158,7 @@
                 <div class="alert alert-danger">{{ $errorMessage }}</div>
             @endif
 
-            <div class="table-responsive card">
+            <div class="table-responsive">
                 <table class="table table-striped table-bordered align-middle">
                     <thead class="bg-secondary text-center">
                         <tr>
@@ -176,21 +177,24 @@
                     <tbody>
                         @forelse ($filtered as $row)
                             <tr>
-                                <td>{{ $row['no'] }}</td>
-                                <td>{{ $row['unit'] }}</td>
-                                <td>{{ $row['tipe'] }}</td>
-                                <td>{{ $row['drk_tup'] }}</td>
-                                <td>{{ $row['akun'] }}</td>
-                                <td>{{ $row['nama_akun'] }}</td>
+                                <td class="text-center">{{ $row['no'] }}</td>
+                                <td class="text-nowrap">{{ $row['unit'] }}</td>
+                                <td class="text-nowrap">{{ $row['tipe'] }}</td>
+                                <td class="text-nowrap">{{ $row['drk_tup'] }}</td>
+                                <td class="text-nowrap">{{ $row['akun'] }}</td>
+                                
+                                {{-- Nama Akun & Uraian diatur untuk wrap agar tidak memicu scroll berlebihan --}}
+                                <td style="min-width: 150px; max-width: 250px; white-space: normal;">
+                                    {{ $row['nama_akun'] }}
+                                </td>
 
-                                {{-- Uraian: wrap agar bisa turun baris --}}
-                                <td style="max-width: 350px; white-space: normal; word-wrap: break-word;">
+                                <td style="min-width: 200px; max-width: 350px; white-space: normal; word-wrap: break-word;">
                                     {{ $row['uraian'] }}
                                 </td>
 
-                                <td class="text-end">Rp {{ number_format($row['anggaran'] ?? 0, 0, ',', '.') }}</td>
-                                <td class="text-end">Rp {{ number_format($row['realisasi'] ?? 0, 0, ',', '.') }}</td>
-                                <td class="text-end">Rp {{ number_format($row['saldo'] ?? 0, 0, ',', '.') }}</td>
+                                <td class="text-end text-nowrap">Rp {{ number_format($row['anggaran'] ?? 0, 0, ',', '.') }}</td>
+                                <td class="text-end text-nowrap">Rp {{ number_format($row['realisasi'] ?? 0, 0, ',', '.') }}</td>
+                                <td class="text-end text-nowrap">Rp {{ number_format($row['saldo'] ?? 0, 0, ',', '.') }}</td>
                             </tr>
                         @empty
                             <tr>

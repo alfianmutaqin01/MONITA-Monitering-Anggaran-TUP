@@ -6,9 +6,12 @@ use Illuminate\Http\Request;
 use Google_Client;
 use Google_Service_Sheets;
 use Exception;
+use App\Traits\FormatDataTrait; 
 
 class SummaryController extends Controller
 {
+    use FormatDataTrait; 
+
     protected $spreadsheetId;
 
     public function __construct()
@@ -27,52 +30,49 @@ class SummaryController extends Controller
         return new Google_Service_Sheets($client);
     }
 
-    /** 💡 Parse angka dari cell */
-    private function parseNumber($v): float
-    {
-        if (!$v) return 0;
-        $v = trim((string)$v);
-        $negative = false;
+    // 💡 Fungsi parseNumber dan toRoman sekarang dipanggil dari FormatDataTrait
 
-        // format (1234)
-        if (preg_match('/^\((.*)\)$/', $v, $m)) {
-            $negative = true;
-            $v = $m[1];
-        }
-
-        $v = str_replace(['.', ','], ['', '.'], $v);
-        $num = is_numeric($v) ? (float)$v : 0;
-        return $negative ? -$num : $num;
-    }
-
-    /** 📄 Tampilkan summary TW */
     public function index($tw)
-    {
-        $tw = max(1, min(4, (int)$tw)); // clamp 1–4
+{
+    $tw = max(1, min(4, (int)$tw)); // clamp 1–4
 
-        $sheetName = match ($tw) {
-            1 => 'SUMMARY TW I',
-            2 => 'SUMMARY TW II',
-            3 => 'SUMMARY TW III',
-            4 => 'SUMMARY TW IV',
-        };
+    // Menggunakan toRoman dari Trait
+    $sheetName = 'SUMMARY TW ' . $this->toRoman($tw);
 
-        $range = "{$sheetName}!C6:T39";
+    $range = "{$sheetName}!C6:T39";
 
-        try {
-            $values = $this->getGoogleSheetService()
-                ->spreadsheets_values
-                ->get($this->spreadsheetId, $range)
-                ->getValues() ?? [];
-        } catch (Exception $e) {
-            return back()->withErrors(['gsheet' => 'Gagal memuat data summary: ' . $e->getMessage()]);
+    try {
+        $service = $this->getGoogleSheetService();
+
+        // Cek apakah tab sheet tersedia di Google Sheets
+        $sheets = $service->spreadsheets->get($this->spreadsheetId)->getSheets();
+        $sheetNames = collect($sheets)->pluck('properties.title')->toArray();
+
+        if (!in_array($sheetName, $sheetNames)) {
+            return redirect()
+                ->route('settings.index')
+                ->with('warning', "Spreadsheet tahun ini belum memiliki tab '{$sheetName}'. Silakan tambahkan tab tersebut terlebih dahulu di Google Sheets.");
         }
 
+        // Ambil data summary
+        $values = $service->spreadsheets_values
+            ->get($this->spreadsheetId, $range)
+            ->getValues() ?? [];
+
+        // Jika sheet ditemukan tapi datanya kosong → arahkan juga ke settings
+        if (empty($values) || count(array_filter($values, fn($r) => !empty(array_filter($r)))) === 0) {
+            return redirect()
+                ->route('settings.index')
+                ->with('warning', "Data summary untuk '{$sheetName}' belum tersedia atau masih kosong. Harap lengkapi data di Google Sheets terlebih dahulu.");
+        }
+
+        // Parsing data seperti sebelumnya
         $data = [];
         foreach ($values as $i => $r) {
             if (empty(array_filter($r))) continue;
             $r = array_pad($r, 22, '');
 
+            // Menggunakan parseNumber dari Trait
             $data[] = [
                 'no'            => $i + 1,
                 'kode_pp'       => $r[0],
@@ -97,5 +97,10 @@ class SummaryController extends Controller
         }
 
         return view("main.summary.tw{$tw}", compact('data', 'tw'));
+    } catch (Exception $e) {
+        return redirect()
+            ->route('settings.index')
+            ->with('error', 'Tidak dapat mengakses data Google Sheet. Periksa koneksi atau kredensial service account.');
     }
+}
 }

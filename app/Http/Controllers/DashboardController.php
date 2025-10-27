@@ -6,7 +6,10 @@ use Illuminate\Http\Request;
 use Google_Client;
 use Google_Service_Sheets;
 use Carbon\Carbon;
+use Exception;
 
+// Asumsikan kita akan memindahkan normalizePercent dan toRoman ke BaseController atau Trait,
+// Untuk saat ini, kita akan menyimpannya sebagai protected methods di sini.
 class DashboardController extends Controller
 {
     protected $spreadsheetId;
@@ -31,9 +34,40 @@ class DashboardController extends Controller
             'valueRenderOption' => 'UNFORMATTED_VALUE'
         ]);
         $value = $response->getValues()[0][0] ?? 0;
+        // Penanganan nilai non-numerik yang lebih ringkas
         if (!is_numeric($value)) $value = preg_replace('/[^0-9.\-]/', '', (string)$value);
         return (float) $value;
     }
+
+    /**
+     * Helper untuk mengkonversi nilai mentah menjadi persentase float (0-100).
+     */
+    protected function normalizePercent($raw)
+    {
+        if ($raw === '' || $raw === null) return 0.0;
+
+        $num = 0.0;
+        if (is_numeric($raw)) {
+            $num = (float)$raw;
+        } else {
+            $s = str_replace(['%', ',', ' '], ['', '.', ''], (string)$raw);
+            $num = (float)preg_replace('/[^0-9.\-]/', '', $s);
+        }
+
+        // Jika nilai kecil (misalnya 0.8), konversikan ke 80%
+        if ($num > 0 && $num <= 2) $num *= 100.0;
+
+        return round($num, 2);
+    }
+
+    /**
+     * Helper untuk konversi angka ke Romawi.
+     */
+    protected function toRoman($number)
+    {
+        return [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV'][$number] ?? 'I';
+    }
+
 
     public function index(Request $request)
 {
@@ -59,19 +93,28 @@ class DashboardController extends Controller
         $currentTw = (int) $request->query('tw', 0);
 
         if ($currentTw === 0) {
+            // Jika tidak ada query 'tw', redirect ke triwulan default
             return redirect()->route('dashboard', ['tw' => $defaultTw]);
         }
+        
+        // Memastikan currentTw valid (1-4)
+        $currentTw = max(1, min(4, $currentTw));
+
 
         $sheetName = "SUMMARY TW " . $this->toRoman($currentTw);
 
-        // 🔹 Range yang ingin diambil
+        // 🔹 Range yang ingin diambil (C:Kode, T:Serapan All, M:RKA Operasi, Q:Real Operasional)
+        // Note: Berdasarkan range ini, sepertinya chart Anda adalah:
+        // - chart-serapan: Serapan All (Kolom T)
+        // - chart-rka: RKA Operasi (Kolom M)
+        // - chart-operasional: Real Operasional (Kolom Q) -> NAMA CHART DI VIEW PERLU DICEK
         $startRow = 6;
         $endRow = 55;
         $ranges = [
-            "{$sheetName}!C{$startRow}:C{$endRow}",
-            "{$sheetName}!T{$startRow}:T{$endRow}",
-            "{$sheetName}!M{$startRow}:M{$endRow}",
-            "{$sheetName}!Q{$startRow}:Q{$endRow}",
+            "{$sheetName}!C{$startRow}:C{$endRow}",  // Kode PP
+            "{$sheetName}!T{$startRow}:T{$endRow}",  // Serapan All
+            "{$sheetName}!M{$startRow}:M{$endRow}",  // RKA Operasi
+            "{$sheetName}!Q{$startRow}:Q{$endRow}",  // Real Operasional
         ];
 
         // 🔹 Ambil batch data
@@ -88,7 +131,7 @@ class DashboardController extends Controller
         if (empty($kodeValues)) {
             return redirect()
                 ->route('settings.index')
-                ->with('warning', 'Data pada Google Sheet saat ini belum lengkap. Mohon lengkapi dahulu sebelum membuka dashboard.');
+                ->with('warning', 'Data Kode PP di Google Sheet saat ini kosong. Mohon lengkapi dahulu sebelum membuka dashboard.');
         }
 
         $get = fn($arr, $i) => isset($arr[$i][0]) ? $arr[$i][0] : '';
@@ -132,26 +175,4 @@ class DashboardController extends Controller
 }
 
 
-    private function normalizePercent($raw)
-    {
-        if ($raw === '' || $raw === null) return 0.0;
-
-        $num = 0.0;
-        if (is_numeric($raw)) {
-            $num = (float)$raw;
-        } else {
-            $s = str_replace(['%', ',', ' '], ['', '.', ''], $raw);
-            $num = (float)preg_replace('/[^0-9.\-]/', '', $s);
-        }
-
-        // 🔹 Jika kecil (<2) kemungkinan 0.8 = 80%
-        if ($num > 0 && $num <= 2) $num *= 100.0;
-
-        return round($num, 2);
-    }
-
-    private function toRoman($number)
-    {
-        return [1 => 'I', 2 => 'II', 3 => 'III', 4 => 'IV'][$number] ?? 'I';
-    }
 }

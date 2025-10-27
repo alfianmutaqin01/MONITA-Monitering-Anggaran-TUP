@@ -3,6 +3,7 @@
 
 @section('content')
     <div class="row">
+        {{-- Kartu Saldo Triwulan --}}
         <div class="col-xl-3 col-md-6">
             <div class="card bg-secondary-dark dashnum-card text-white overflow-hidden">
                 <span class="round small"></span>
@@ -107,9 +108,18 @@
                 </form>
             </div>
 
-            <div id="chart-serapan" style="height:320px;"></div>
-            <div id="chart-rka" style="height:320px;"></div>
-            <div id="chart-operasional" style="height:320px;"></div>
+            {{-- 🚩 PERBAIKAN: Bungkus setiap chart dengan div responsive agar scroll horizontal terjadi di dalam card --}}
+            <div class="chart-container-wrapper table-responsive">
+                <div id="chart-serapan" style="height:320px; width: 1000px; min-width: 100%;"></div>
+            </div>
+
+            <div class="chart-container-wrapper table-responsive">
+                <div id="chart-rka" style="height:320px; width: 1000px; min-width: 100%;"></div>
+            </div>
+
+            <div class="chart-container-wrapper table-responsive">
+                <div id="chart-operasional" style="height:320px; width: 1000px; min-width: 100%;"></div>
+            </div>
         </div>
     </div>
 
@@ -131,17 +141,31 @@
 
             const maxVal = arr => Math.ceil(Math.max(...arr, 100) / 10) * 10;
 
+            // 🚩 PERBAIKAN: Tentukan lebar chart yang lebih lebar dari container normal (misal 1000px)
+            // Ini akan memaksa div wrapper yang responsive (table-responsive) untuk scroll.
+            const chartWidth = Math.max(1000, labels.length * 40);
+
             const chartConfigs = [
                 { id: "#chart-serapan", title: "Serapan kegiatan Unit(%)", data: dataSerapan },
-                { id: "#chart-rka", title: "Serapan Bang (%)", data: dataRka },
-                { id: "#chart-operasional", title: "Serapan Operasional Unit (%)", data: dataOperasional },
+                { id: "#chart-rka", title: "Serapan RKA Operasi (%)", data: dataRka }, // Mengganti nama chart agar lebih jelas
+                { id: "#chart-operasional", title: "Real Operasional Unit (%)", data: dataOperasional },
             ];
 
             document.dispatchEvent(new Event('monita:loading:start'));
 
             chartConfigs.forEach(cfg => {
+                const element = document.querySelector(cfg.id);
+
+                // Atur lebar div chart di sini, agar bisa discroll
+                element.style.width = `${chartWidth}px`;
+
                 const options = {
-                    chart: { type: "bar", height: 320, toolbar: { show: false } },
+                    chart: {
+                        type: "bar",
+                        height: 320,
+                        width: chartWidth, // Terapkan lebar yang dihitung ke opsi chart
+                        toolbar: { show: false }
+                    },
                     series: [{ name: cfg.title, data: cfg.data }],
                     colors: cfg.data.map(colorByValue),
                     plotOptions: { bar: { distributed: true, columnWidth: "60%" } },
@@ -157,7 +181,7 @@
                     title: { text: cfg.title, align: "center" },
                     legend: { show: false }
                 };
-                new ApexCharts(document.querySelector(cfg.id), options).render();
+                new ApexCharts(element, options).render();
             });
 
             setTimeout(() => document.dispatchEvent(new Event('monita:loading:end')), 1000);
@@ -176,6 +200,15 @@
             height: 12px;
             border-radius: 3px;
             margin-right: 4px;
+        }
+
+        /* CSS Tambahan untuk memastikan chart container memiliki scroll bar saat lebar */
+        .chart-container-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding-bottom: 20px;
+            /* Ruang untuk scrollbar horizontal */
         }
     </style>
 @endsection

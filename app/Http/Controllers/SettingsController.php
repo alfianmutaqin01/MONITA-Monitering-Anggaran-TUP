@@ -47,11 +47,16 @@ class SettingsController extends Controller
             $year = trim($request->input('year'));
 
             // Ekstrak key dari URL
-            if (preg_match('/\/d\/([a-zA-Z0-9-_]+)/', $link, $m)) {
-                $key = $m[1];
-            } else {
-                return back()->withErrors(['Link tidak valid. Pastikan format URL benar.']);
+            // ✅ Validasi link Google Sheets
+            $pattern = '/https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/';
+            if (!preg_match($pattern, $link, $m)) {
+                return redirect()
+                    ->route('settings.index')
+                    ->with('error', 'Format link Google Sheet tidak valid. Pastikan link mengandung /spreadsheets/d/<ID>.');
             }
+
+            $key = $m[1];
+
 
             $envVar = "GOOGLE_SPREADSHEET_ID_YEAR_{$year}";
 
@@ -64,7 +69,7 @@ class SettingsController extends Controller
 
             File::put($envPath, $envContent);
 
-            return redirect()->back()->with('success', "Spreadsheet tahun {$year} berhasil disimpan.");
+            return redirect()->route('settings.index')->with('success', "Spreadsheet tahun {$year} berhasil disimpan.");
         }
 
         /**
