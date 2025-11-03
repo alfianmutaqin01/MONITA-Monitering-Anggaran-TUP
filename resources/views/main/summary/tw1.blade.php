@@ -90,9 +90,8 @@
                                 <td class="text-end">{{ formatRupiah($row['real_bang']) }}</td>
                                 <td class="text-end">{{ formatRupiah($row['sisa_bang']) }}</td>
                                 <td class="text-center">{{ formatPercentCell($row['serapan_bang']) }}</td>
-                                {{-- 🚩 PERBAIKAN: Gunakan formatRupiah untuk RKM --}}
-                                <td class="text-end">{{ formatRupiah($row['rkm_operasi']) }}</td>
-                                <td class="text-end">{{ formatRupiah($row['real_rkm']) }}</td>
+                                <td class="text-end">{{($row['rkm_operasi']) }}</td>
+                                <td class="text-end">{{($row['real_rkm']) }}</td>
                                 <td class="text-center">{{ formatPercentCell($row['persen_rkm']) }}</td>
                             </tr>
                         @empty
@@ -109,13 +108,8 @@
 
 @push('scripts')
     <style>
-        /* 🚩 PERBAIKAN: Menghapus CSS kustom yang tidak perlu */
-        /* Karena kita menggunakan .table-responsive, CSS scroll kustom di footer tidak dibutuhkan. */
-        /* Anda bisa menghapus bagian CSS ini dari file footer/global jika hanya digunakan untuk tabel ini. */
         .table-responsive {
-            /* Pastikan overflow-x diaktifkan oleh Bootstrap. */
             overflow-x: auto;
-            /* Pastikan overflow-y diaktifkan oleh inline style di div. */
         }
         
         .sticky-top {

@@ -45,10 +45,12 @@
 
                             <li class="pc-item">
                                 <div style="max-height: 300px; overflow-y: auto;">
-                                    <ul class="list-unstyled mb-0">
+                                    <ul class="list-unstyled mb-0" id="units-container">
                                         @foreach($allUnits as $kode => $nama)
-                                            <li class="pc-item unit-item">
-                                                <a class="pc-link" href="{{ route('unit.show', $kode) }}">{{ $nama }}</a>
+                                            <li class="pc-item unit-item" data-kode="{{ $kode }}" data-nama="{{ $nama }}">
+                                                <a class="pc-link" href="{{ route('unit.show', $kode) }}">
+                                                    <strong>{{ $kode }}</strong> - {{ $nama }}
+                                                </a>
                                             </li>
                                         @endforeach
                                     </ul>
@@ -56,11 +58,18 @@
                             </li>
                         @else
                             <li class="pc-item">
-                                <a class="pc-link" href="{{ route('unit.show', $userUnitKode) }}">{{ $userUnitNama }}</a>
+                                @if(isset($allUnits[$userUnitKode]))
+                                    <a class="pc-link" href="{{ route('unit.show', $userUnitKode) }}">
+                                        <strong>{{ $userUnitKode }}</strong> - {{ $allUnits[$userUnitKode] }}
+                                    </a>
+                                @else
+                                    <a class="pc-link" href="{{ route('unit.show', $userUnitKode) }}">
+                                        {{ $userUnitNama }}
+                                    </a>
+                                @endif
                             </li>
                         @endif
                     </ul>
-
                 </li>
 
                 <!-- Summary Anggaran -->

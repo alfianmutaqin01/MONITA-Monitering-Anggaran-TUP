@@ -56,7 +56,13 @@
                                 <td>{{ $u['kode_pp'] }}</td>
                                 <td>{{ $u['nama_pp'] }}</td>
                                 <td>{{ $u['username'] }}</td>
-                                <td>{{ $u['password'] }}</td>
+                                <td>
+                                    @if (Hash::info($u['password'])['algoName'] !== 'unknown')
+                                        <span class="badge bg-success">Ter-hash (Aman)</span>
+                                    @else
+                                        <span class="badge bg-warning text-dark">Plain Text (Lama)</span>
+                                    @endif
+                                </td>
                                 <td>{{ $u['role'] }}</td>
                                 <td>
                                     <button class="btn btn-sm btn-icon btn-light-primary btn-view"
@@ -322,7 +328,7 @@
                                 document.getElementById('viewKode').textContent = data.akun.kode_pp;
                                 document.getElementById('viewNama').textContent = data.akun.nama_pp;
                                 document.getElementById('viewUsername').textContent = data.akun.username;
-                                document.getElementById('viewPassword').textContent = data.akun.password;
+                                document.getElementById('viewPassword').textContent = '********';
                                 document.getElementById('viewRole').textContent = data.akun.role;
                                 new bootstrap.Modal(document.getElementById('modalViewAkun')).show();
                             } else {
@@ -348,7 +354,8 @@
                                 document.getElementById('editKode').value = data.akun.kode_pp;
                                 document.getElementById('editNama').value = data.akun.nama_pp;
                                 document.getElementById('editUsername').value = data.akun.username;
-                                document.getElementById('editPassword').value = data.akun.password;
+                                document.getElementById('editPassword').value = '';
+                                document.getElementById('editPassword').placeholder = 'Masukkan password baru untuk di-hash...';
                                 document.getElementById('editRole').value = data.akun.role.toLowerCase();
                                 new bootstrap.Modal(document.getElementById('modalEditAkun')).show();
                             } else {

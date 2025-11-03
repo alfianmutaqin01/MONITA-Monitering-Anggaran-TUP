@@ -6,9 +6,12 @@ use Illuminate\Http\Request;
 use Google_Client;
 use Google_Service_Sheets;
 use Exception;
+use App\Traits\FormatDataTrait; // Menggunakan Trait utilitas
 
 class LaporanController extends Controller
 {
+    use FormatDataTrait; // 🚩 Implementasi Trait
+
     protected $spreadsheetId;
 
     public function __construct()
@@ -21,12 +24,17 @@ class LaporanController extends Controller
         $client = new Google_Client();
         $client->setApplicationName('MONITA - Laporan');
         $client->setScopes([Google_Service_Sheets::SPREADSHEETS_READONLY]);
-        $client->setAuthConfig(storage_path('app/credentials/service-account.json'));
+        // Diasumsikan file credentials/service-account.json sudah ada
+        $client->setAuthConfig(storage_path('app/credentials/service-account.json')); 
         return new Google_Service_Sheets($client);
     }
 
+    /**
+     * Menampilkan data Laporan (RAW Data) berdasarkan Triwulan, Unit, dan Tipe.
+     */
     public function index(Request $request, $tw = 1)
     {
+        $tw = max(1, min(4, (int)$tw));
         $service = $this->getGoogleSheetService();
 
         $sheetMap = [
@@ -43,15 +51,13 @@ class LaporanController extends Controller
             $response = $service->spreadsheets_values->get($this->spreadsheetId, $range);
             $values = $response->getValues() ?? [];
 
-            // ✅ Jika tab tidak ditemukan (Google API Error)
         } catch (Exception $e) {
+            // 🚩 Penanganan Error API: Arahkan ke Settings jika ada masalah koneksi/tab
             if (str_contains($e->getMessage(), 'Unable to parse range') ||
-                str_contains($e->getMessage(), 'Requested entity was not found') ||
-                str_contains($e->getMessage(), 'Unable to parse')) {
+                str_contains($e->getMessage(), 'Requested entity was not found')) {
                 return redirect()
                     ->route('settings.index')
-                    ->with('warning', "Tab {$sheetName} tidak ditemukan pada spreadsheet aktif. 
-                    Pastikan file Google Sheet memiliki tab dengan nama tersebut.");
+                    ->with('warning', "Tab {$sheetName} tidak ditemukan pada spreadsheet aktif. Pastikan file Google Sheet memiliki tab dengan nama tersebut.");
             }
             return redirect()
                 ->route('settings.index')
@@ -62,8 +68,7 @@ class LaporanController extends Controller
         if (empty($values)) {
             return redirect()
                 ->route('settings.index')
-                ->with('warning', "Data pada tab <strong>{$sheetName}</strong> tidak ditemukan atau kosong. 
-                Silakan periksa kelengkapan data Google Sheet Anda.");
+                ->with('warning', "Data pada tab <strong>{$sheetName}</strong> tidak ditemukan atau kosong. Silakan periksa kelengkapan data Google Sheet Anda.");
         }
 
         $data = [];
@@ -71,7 +76,8 @@ class LaporanController extends Controller
         foreach ($values as $row) {
             $row = array_pad($row, 10, '');
             if (count(array_filter($row)) === 0) continue;
-
+            
+            // Menggunakan parseNumber dari Trait
             $data[] = [
                 'no'         => $no++,
                 'kode_besar' => $row[0] ?? '',
@@ -87,53 +93,22 @@ class LaporanController extends Controller
             ];
         }
 
-        // === AMBIL DAFTAR UNIT ===
-        $units = [];
-        try {
-            $unitResp = $service->spreadsheets_values->get($this->spreadsheetId, 'Users!B3:B100');
-            $unitVals = $unitResp->getValues() ?? [];
+        // === AMBIL DAFTAR UNIT (untuk filter dropdown) ===
+        $units = $this->getUnitList($service); // Memanggil helper unit list (akan dibuat)
 
-            // ✅ Jika tab Users kosong
-            if (empty($unitVals)) {
-                return redirect()
-                    ->route('settings.index')
-                    ->with('warning', "Tab <strong>Users</strong> tidak ditemukan atau kosong. 
-                    Silakan periksa kelengkapan data Google Sheet Anda.");
-            }
-
-            foreach ($unitVals as $r) {
-                if (!empty(trim((string)($r[0] ?? '')))) {
-                    $units[] = trim((string)$r[0]);
-                }
-            }
-            $units = array_values(array_unique($units));
-        } catch (Exception $e) {
-            if (str_contains($e->getMessage(), 'Unable to parse range') ||
-                str_contains($e->getMessage(), 'Requested entity was not found')) {
-                return redirect()
-                    ->route('settings.index')
-                    ->with('warning', "Tab <strong>Users </strong> tidak ditemukan pada spreadsheet aktif. 
-                    Silakan tambahkan tab tersebut untuk melanjutkan.");
-            }
-            return redirect()
-                ->route('settings.index')
-                ->with('error', 'Gagal memuat daftar unit: ' . $e->getMessage());
-        }
-
-        // === FILTER UNIT (jika ada) ===
+        // === FILTER LOGIC (Unit dan Type) ===
         $filterUnit = $request->query('unit');
+        $filterType = $request->query('type', 'all');
+
         if ($filterUnit) {
-            $data = array_values(array_filter($data, function ($d) use ($filterUnit) {
-                return strcasecmp(trim($d['unit']), trim($filterUnit)) === 0;
-            }));
+            $data = array_values(array_filter($data, fn($d) => strcasecmp(trim($d['unit']), trim($filterUnit)) === 0));
         }
 
-        // === FILTER TYPE ANGGARAN ===
-        $filterType = $request->query('type', 'all');
         if ($filterType !== 'all') {
             $data = array_values(array_filter($data, function ($d) use ($filterType) {
                 $type = strtoupper($d['tipe'] ?? '');
-                return match ($filterType) {
+                // Menggunakan str_contains untuk filtering
+                return match ($filterType) { 
                     'operasional' => str_contains($type, 'OPER'),
                     'remun'       => str_contains($type, 'REMUN'),
                     'bang'        => str_contains($type, 'BANG'),
@@ -143,31 +118,29 @@ class LaporanController extends Controller
             }));
         }
 
+        // Memberi nomor ulang setelah filtering
+        foreach ($data as $i => &$row) $row['no'] = $i + 1;
+        
         $viewName = "main.laporan.tw{$tw}";
-        return view($viewName, [
-            'data'        => $data,
-            'tw'          => (int)$tw,
-            'units'       => $units,
-            'filterUnit'  => $filterUnit,
-            'filterType'  => $filterType,
-        ]);
+        return view($viewName, compact('data', 'tw', 'units', 'filterUnit', 'filterType'));
     }
-
-    private function parseNumber($val)
+    
+    // 🚩 Tambahkan helper untuk mengambil daftar unit (diperlukan untuk dropdown filter)
+    private function getUnitList($service)
     {
-        $val = (string)$val;
-        if ($val === '' || strtolower($val) === 'null') return 0;
-
-        $clean = preg_replace('/[^\d\-,\.]/u', '', $val);
-        $clean = str_replace(["\u{00A0}", ' '], '', $clean);
-
-        if (strpos($clean, ',') !== false && strpos($clean, '.') !== false) {
-            $clean = str_replace('.', '', $clean);
-            $clean = str_replace(',', '.', $clean);
-        } else {
-            $clean = str_replace([',', '.'], '', $clean);
+        try {
+            $unitResp = $service->spreadsheets_values->get($this->spreadsheetId, 'Users!B3:B100');
+            $unitVals = $unitResp->getValues() ?? [];
+            $units = [];
+            foreach ($unitVals as $r) {
+                if (!empty(trim((string)($r[0] ?? '')))) {
+                    $units[] = trim((string)$r[0]);
+                }
+            }
+            return array_values(array_unique($units));
+        } catch (Exception $e) {
+            // Jika Users tab bermasalah, kembalikan array kosong agar filter tidak crash
+            return [];
         }
-
-        return $clean === '' ? 0 : (float)$clean;
     }
 }

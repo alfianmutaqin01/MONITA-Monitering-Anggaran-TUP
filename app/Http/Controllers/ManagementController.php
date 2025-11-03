@@ -4,17 +4,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Hash; 
 use Google_Client;
 use Google_Service_Sheets;
 use Google_Service_Sheets_ValueRange;
 use Google_Service_Sheets_ClearValuesRequest;
+use Exception;
 
 class ManagementController extends Controller
 {
+    
     protected $spreadsheetId;
     protected $sheetName = 'Users';
     protected $startRow = 3; // Data mulai A3
-    private $service = null; // cache instance Google Service
+    private $service = null; 
 
     public function __construct()
     {
@@ -43,11 +46,16 @@ class ManagementController extends Controller
      */
     private function getCachedUsers($service)
     {
-        return Cache::remember('sheet_users_data', 60, function () use ($service) {
-            $range = "{$this->sheetName}!A{$this->startRow}:F";
-            $response = $service->spreadsheets_values->get($this->spreadsheetId, $range);
-            return $response->getValues() ?? [];
-        });
+        try {
+             return Cache::remember('sheet_users_data', 60, function () use ($service) {
+                $range = "{$this->sheetName}!A{$this->startRow}:F";
+                $response = $service->spreadsheets_values->get($this->spreadsheetId, $range);
+                return $response->getValues() ?? [];
+            });
+        } catch (Exception $e) {
+            // Jika koneksi gagal, jangan biarkan cache crash
+            return [];
+        }
     }
 
     /**
@@ -55,11 +63,15 @@ class ManagementController extends Controller
      */
     private function findRowByKode($service, $kode)
     {
+        // Data diambil dari cache, jadi ini cepat
         $values = $this->getCachedUsers($service);
+        $kode = trim((string)$kode); 
+        
         foreach ($values as $i => $row) {
             $cellKode = isset($row[1]) ? trim((string)$row[1]) : '';
             if (strcasecmp($cellKode, $kode) === 0) {
                 return [
+                    // SheetRow adalah baris fisik di Google Sheet
                     'sheetRow' => $this->startRow + $i,
                     'row' => $row
                 ];
@@ -69,7 +81,7 @@ class ManagementController extends Controller
     }
 
     /**
-     * Helper: Reindex nomor urut kolom A (optimasi, hanya bila perlu)
+     * Helper: Reindex nomor urut kolom A (Wajib setelah INSERT/DELETE)
      */
     private function reindexNumbers($service)
     {
@@ -80,12 +92,13 @@ class ManagementController extends Controller
         $nonEmpty = [];
         foreach ($rows as $row) {
             $row = array_pad($row, 6, '');
+            // Cek apakah ada data di kolom B sampai F
             if (count(array_filter(array_slice($row, 1, 5))) > 0) {
                 $nonEmpty[] = [$row[1], $row[2], $row[3], $row[4], $row[5]];
             }
         }
 
-        // Kosongkan area lama
+        // Kosongkan area lama sebelum menulis ulang
         $clear = new Google_Service_Sheets_ClearValuesRequest([]);
         $service->spreadsheets_values->clear($this->spreadsheetId, $range, $clear);
 
@@ -97,6 +110,7 @@ class ManagementController extends Controller
         $final = [];
         $no = 1;
         foreach ($nonEmpty as $r) {
+            // Kolom A: No (Index); Kolom B-F: Data User
             $final[] = [$no, $r[0], $r[1], $r[2], $r[3], $r[4]];
             $no++;
         }
@@ -104,7 +118,7 @@ class ManagementController extends Controller
         $body = new Google_Service_Sheets_ValueRange(['values' => $final]);
         $service->spreadsheets_values->update(
             $this->spreadsheetId,
-            $range,
+            "{$this->sheetName}!A{$this->startRow}:F",
             $body,
             ['valueInputOption' => 'USER_ENTERED']
         );
@@ -123,7 +137,8 @@ class ManagementController extends Controller
         $users = [];
         foreach ($values as $i => $row) {
             $row = array_pad($row, 6, '');
-            if (count(array_filter(array_slice($row, 1, 5))) === 0) continue;
+            // Filter baris kosong
+            if (count(array_filter(array_slice($row, 1, 5))) === 0) continue; 
 
             $users[] = [
                 'sheet_row' => $this->startRow + $i,
@@ -131,7 +146,7 @@ class ManagementController extends Controller
                 'kode_pp'   => $row[1] ?? '',
                 'nama_pp'   => $row[2] ?? '',
                 'username'  => $row[3] ?? '',
-                'password'  => $row[4] ?? '',
+                'password'  => $row[4] ?? '', // 🚩 Catatan: Ini masih plain text saat ditampilkan
                 'role'      => ucfirst(strtolower($row[5] ?? 'user')),
             ];
         }
@@ -140,10 +155,11 @@ class ManagementController extends Controller
     }
 
     /**
-     * Menambahkan akun baru
+     * Menambahkan akun baru (Create)
      */
     public function store(Request $request)
     {
+        // Pastikan validasi dijalankan
         $request->validate([
             'kode_pp'  => 'required|string|max:10',
             'nama_pp'  => 'required|string|max:150',
@@ -155,31 +171,41 @@ class ManagementController extends Controller
         $service = $this->getGoogleSheetService();
         $rows = $this->getCachedUsers($service);
 
+        // Cek duplikasi Kode PP
         foreach ($rows as $row) {
             if (strcasecmp(trim($row[1] ?? ''), trim($request->kode_pp)) === 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Kode PP sudah terpakai. Gunakan kode lain.'
-                ], 422);
+                return response()->json(['success' => false, 'message' => 'Kode PP sudah terpakai. Gunakan kode lain.'], 422);
             }
         }
 
+        $newUsername = trim($request->username);
+        foreach ($rows as $row) {
+            if (strcasecmp(trim($row[3] ?? ''), $newUsername) === 0) {
+                return response()->json(['success' => false, 'message' => 'Username sudah terpakai. Gunakan username lain.'], 422);
+            }
+        }
+        
+        $passwordToHash = $request->password . $request->username;
+        $passwordToSave = Hash::make($passwordToHash);
+        
+        // Hitung nomor urut baru (meskipun reindexNumbers akan memperbaikinya)
         $nonEmpty = collect($rows)->filter(fn($r) =>
             count(array_filter(array_slice(array_pad($r, 6, ''), 1, 5))) > 0
         )->count();
         $newNo = $nonEmpty + 1;
 
         $body = new Google_Service_Sheets_ValueRange([
-            'values' => [[
-                $newNo,
-                $request->kode_pp,
-                $request->nama_pp,
-                $request->username,
-                $request->password,
-                $request->role
+        'values' => [[
+            $newNo,
+            $request->kode_pp,
+            $request->nama_pp,
+            $newUsername,
+            $passwordToSave, 
+            $request->role
             ]]
         ]);
 
+        // Menggunakan INSERT_ROWS untuk menambah baris di akhir
         $service->spreadsheets_values->append(
             $this->spreadsheetId,
             "{$this->sheetName}!A:F",
@@ -187,13 +213,13 @@ class ManagementController extends Controller
             ['valueInputOption' => 'USER_ENTERED', 'insertDataOption' => 'INSERT_ROWS']
         );
 
-        $this->reindexNumbers($service);
+        $this->reindexNumbers($service); // Reindex untuk memastikan penomoran kolom A benar
 
-        return response()->json(['success' => true, 'message' => 'Akun baru berhasil ditambahkan.']);
+        return response()->json(['success' => true, 'message' => 'Akun baru berhasil ditambahkan (Password telah diamankan).']);
     }
 
     /**
-     * Menampilkan detail akun (View/Edit)
+     * Menampilkan detail akun (Read - untuk modal view/edit)
      */
     public function show($kode)
     {
@@ -211,7 +237,7 @@ class ManagementController extends Controller
             'kode_pp'   => $row[1] ?? '',
             'nama_pp'   => $row[2] ?? '',
             'username'  => $row[3] ?? '',
-            'password'  => $row[4] ?? '',
+            'password'  => $row[4] ?? '', 
             'role'      => $row[5] ?? 'user',
         ];
 
@@ -219,7 +245,7 @@ class ManagementController extends Controller
     }
 
     /**
-     * Update akun (optimasi: tidak reindex kecuali kode berubah)
+     * Update akun (Update)
      */
     public function update(Request $request, $kode)
     {
@@ -238,15 +264,45 @@ class ManagementController extends Controller
             return response()->json(['success' => false, 'message' => 'Data tidak ditemukan']);
         }
 
+        $rows = $this->getCachedUsers($service);
+        $oldUsername = trim($found['row'][3] ?? '');
+        
+        // Cek duplikasi Kode PP baru (kecuali kode lama)
+        if ($request->kode_pp !== $kode) {
+            $rows = $this->getCachedUsers($service);
+            foreach ($rows as $row) {
+                if (strcasecmp(trim($row[1] ?? ''), trim($request->kode_pp)) === 0) {
+                     return response()->json(['success' => false, 'message' => 'Kode PP baru sudah terpakai oleh akun lain.'], 422);
+                }
+            }
+        }
+        // Cek duplikasi username
+        $newUsername = trim($request->username);
+    
+        if (strcasecmp($newUsername, $oldUsername) !== 0) { // Hanya cek jika username diubah
+            foreach ($rows as $row) {
+                $currentKode = trim($row[1] ?? '');
+                $currentUsername = trim($row[3] ?? '');
+                
+                // Cek apakah username baru sama dengan username lain (bukan user yang sedang diedit)
+                if (strcasecmp($currentUsername, $newUsername) === 0 && strcasecmp($currentKode, $kode) !== 0) {
+                    return response()->json(['success' => false, 'message' => 'Username baru sudah terpakai oleh akun lain.'], 422);
+                }
+            }
+        }
+        
+        $passwordToHash = $request->password . $request->username;
+        $passwordToSave = Hash::make($passwordToHash);
+        
         $sheetRow = $found['sheetRow'];
-        $range = "{$this->sheetName}!B{$sheetRow}:F{$sheetRow}";
+        $range = "{$this->sheetName}!B{$sheetRow}:F{$sheetRow}"; // Kolom B sampai F
         $body = new Google_Service_Sheets_ValueRange([
-            'values' => [[
-                $request->kode_pp,
-                $request->nama_pp,
-                $request->username,
-                $request->password,
-                $request->role
+        'values' => [[
+            $request->kode_pp,
+            $request->nama_pp,
+            $newUsername, // Simpan username yang sudah di-trim
+            $passwordToSave, // Simpan hash
+            $request->role
             ]]
         ]);
 
@@ -257,18 +313,18 @@ class ManagementController extends Controller
             ['valueInputOption' => 'USER_ENTERED']
         );
 
-        // reindex hanya bila kode_pp berubah
+        // Reindex jika kode_pp berubah (agar urutan kolom A tetap rapi)
         if ($request->kode_pp !== $kode) {
-            $this->reindexNumbers($service);
+            $this->reindexNumbers($service); 
         } else {
             Cache::forget('sheet_users_data');
         }
 
-        return response()->json(['success' => true]);
+        return response()->json(['success' => true, 'message' => 'Perubahan tersimpan (Password telah diamankan).']);
     }
 
     /**
-     * Hapus akun (dengan reindex otomatis)
+     * Hapus akun (Delete)
      */
     public function destroy($kode)
     {
@@ -280,7 +336,10 @@ class ManagementController extends Controller
         }
 
         $sheetRow = $found['sheetRow'];
-        $empty = new Google_Service_Sheets_ValueRange(['values' => [['', '', '', '', '', '']]]);
+        // Tulis baris kosong dari kolom A sampai F
+        $empty = new Google_Service_Sheets_ValueRange(['values' => [['', '', '', '', '', '']]]); 
+        
+        // Update baris dengan nilai kosong (soft delete)
         $service->spreadsheets_values->update(
             $this->spreadsheetId,
             "{$this->sheetName}!A{$sheetRow}:F{$sheetRow}",
@@ -288,7 +347,7 @@ class ManagementController extends Controller
             ['valueInputOption' => 'USER_ENTERED']
         );
 
-        $this->reindexNumbers($service);
+        $this->reindexNumbers($service); // Reindex untuk merapikan urutan No
         return response()->json(['success' => true]);
     }
 }

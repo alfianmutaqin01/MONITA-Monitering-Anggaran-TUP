@@ -4,16 +4,17 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash;
 use Exception;
+use App\Services\GoogleSheetService;
 
 class AuthController extends Controller
 {
-    protected $spreadsheetId;
-    protected $range = 'users!A2:F'; 
+    protected $googleSheetService;
 
-    public function __construct()
+    public function __construct(GoogleSheetService $googleSheetService)
     {
-        $this->spreadsheetId = env('GOOGLE_SPREADSHEET_ID', '');
+        $this->googleSheetService = $googleSheetService;
     }
 
     public function showLogin()
@@ -22,52 +23,12 @@ class AuthController extends Controller
     }
 
     /**
-     * Inisialisasi Google Sheets service menggunakan service account JSON
-     */
-    private function getGoogleSheetService()
-    {
-        $client = new \Google_Client();
-        $client->setApplicationName('Monita System');
-        $client->setScopes([\Google_Service_Sheets::SPREADSHEETS]);
-        $client->setAuthConfig(storage_path('app/credentials/service-account.json'));
-
-        return new \Google_Service_Sheets($client);
-    }
-
-    /**
-     * Load semua user dari sheet Users
-     * return array of users
+     * Load semua user dari sheet Users menggunakan service
      */
     private function loadUsers()
-{
-    $service = $this->getGoogleSheetService();
-
-    $response = $service->spreadsheets_values->get(
-    $this->spreadsheetId,
-    $this->range
-);
-
-    $values = $response->getValues();
-
-    $users = [];
-    if (empty($values)) {
-        return $users;
+    {
+        return $this->googleSheetService->getUsersFromSheet();
     }
-
-    foreach ($values as $row) {
-        $users[] = [
-            'no'       => $row[0] ?? '',
-            'kode_pp'  => $row[1] ?? '',
-            'nama_pp'  => $row[2] ?? '',
-            'username' => $row[3] ?? '',
-            'password' => $row[4] ?? '',
-            'role'     => strtolower($row[5] ?? 'user'),
-        ];
-    }
-
-    return $users;
-}
-
 
     public function login(Request $request)
     {
@@ -84,20 +45,40 @@ class AuthController extends Controller
             ])->withInput();
         }
 
+        $inputUsername = trim($request->username);
         foreach ($users as $user) {
-            if (
-                isset($user['username']) &&
-                isset($user['password']) &&
-                $user['username'] === $request->username &&
-                $user['password'] === $request->password
-            ) {
-                // Login berhasil -> simpan di session
-                Session::put('user_authenticated', true);
-                Session::put('user_data', $user);
-                Session::put('user_role', $user['role']);
+            if (isset($user['username']) && trim($user['username']) === $inputUsername) {
+                
+                $inputPassword = $request->password;
+                $storedPassword = $user['password'];
+                $isHashed = Hash::info($storedPassword)['algoName'] !== 'unknown';
+                
+                $loggedIn = false;
 
-
-                return redirect()->route('dashboard');
+                // HASHED
+                if ($isHashed) {
+                    $passwordWithSalt = $inputPassword . $inputUsername;
+                    if (Hash::check($passwordWithSalt, $storedPassword)) {
+                        $loggedIn = true;
+                    }
+                }
+                
+                // PLAIN TEXT (fallback untuk migrasi)
+                if (!$isHashed && $storedPassword === $inputPassword) {
+                    $loggedIn = true;
+                }
+            
+                if ($loggedIn) {
+                    // Login berhasil -> simpan di session
+                    Session::put('user_authenticated', true);
+                    Session::put('user_data', $user);
+                    Session::put('user_role', $user['role']);
+                    
+                    // Clear cache units untuk memastikan data terbaru
+                    $this->googleSheetService->clearUnitsCache();
+                    
+                    return redirect()->route('dashboard');
+                }
             }
         }
 
@@ -108,19 +89,17 @@ class AuthController extends Controller
     {
         Session::forget('user_authenticated');
         Session::forget('user_data');
+        Session::forget('user_role');
         return redirect()->route('login');
     }
 
     public function dashboard()
-{
-    if (!Session::get('user_authenticated')) {
-        return redirect()->route('login')->withErrors(['login' => 'Silakan login terlebih dahulu.']);
+    {
+        if (!Session::get('user_authenticated')) {
+            return redirect()->route('login')->withErrors(['login' => 'Silakan login terlebih dahulu.']);
+        }
+
+        $user = Session::get('user_data');
+        return view('main.dashboard', compact('user'));
     }
-
-    // Ambil data user dari session
-    $user = Session::get('user_data');
-
-    return view('main.dashboard', compact('user'));
-}
-
 }

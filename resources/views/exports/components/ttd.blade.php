@@ -1,25 +1,42 @@
 @php
+    // Data TTD default untuk menghindari error
+    $ttdJabatan1 = env('TTD_JABATAN_1', 'Jabatan Penanda Tangan 1');
+    $ttdNama1 = env('TTD_NAMA_1', 'Nama Penanda Tangan 1');
+    $ttdNip1 = env('TTD_NIP_1', 'NIP 1');
+    
+    $ttdJabatan2 = env('TTD_JABATAN_2', 'Jabatan Penanda Tangan 2');
+    $ttdNama2 = env('TTD_NAMA_2', 'Nama Penanda Tangan 2');
+    $ttdNip2 = env('TTD_NIP_2', 'NIP 2');
+
     $tanggal = \Carbon\Carbon::now()->translatedFormat('d F Y');
 @endphp
 
-<table style="width:100%; margin-top:40px; font-size:11px;" class="border-0">
-    <tr>
-        <td style="width:50%; text-align:center; vertical-align:top;">
-            Mengetahui<br>
-            Wakil Direktur II TUP<br><br><br>
-            <img src="{{ public_path('assets/ttd/ttd_tata.png') }}" alt="Tanda tangan Tata"
-                style="width:120px; height:auto;"><br>
-            <strong><u>Tata Sambada, MBA</u></strong><br>
-            NIP : 17740081
-        </td>
-        <td style="width:50%; text-align:center; vertical-align:top;">
-            Purwokerto, {{ $tanggal }}<br>
-            Pembuat Rincian<br>
-            Kepala Bagian<br><br><br>
-            <img src="{{ public_path('assets/ttd/ttd_azis.png') }}" alt="Tanda tangan Azis"
-                style="width:120px; height:auto;"><br>
-            <strong><u>Abdul Azis, M.Ak</u></strong><br>
-            NIP : 13920023
-        </td>
-    </tr>
-</table>
+<div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd;">
+    <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+        <tr>
+            {{-- TTD Kiri --}}
+            <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px;">
+                <div style="margin-bottom: 60px;">
+                    Mengetahui,<br>
+                    <strong>{{ $ttdJabatan1 }}</strong>
+                </div>
+                <div style="margin-top: 80px;">
+                    <strong><u>{{ $ttdNama1 }}</u></strong><br>
+                    NIP: {{ $ttdNip1 }}
+                </div>
+            </td>
+            
+            {{-- TTD Kanan --}}
+            <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px;">
+                <div style="margin-bottom: 60px;">
+                    Purwokerto, {{ $tanggal }}<br>
+                    <strong>{{ $ttdJabatan2 }}</strong>
+                </div>
+                <div style="margin-top: 80px;">
+                    <strong><u>{{ $ttdNama2 }}</u></strong><br>
+                    NIP: {{ $ttdNip2 }}
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
