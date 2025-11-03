@@ -99,9 +99,20 @@
                 <ol class="mb-2">
                     <li>Buka file <strong>Google Sheets</strong> tahun anggaran yang ingin dikelola.</li>
                     <li>Klik tombol <strong>Bagikan</strong> di kanan atas.</li>
-                    <li>Tambahkan akun berikut sebagai editor:<br>
-                        <code>keuangan-tup@monita-471208.iam.gserviceaccount.com</code>
-                    </li>
+                    <li>
+    Tambahkan akun berikut sebagai editor:<br>
+    <code id="service-account-email">keuangan-tup@monita-471208.iam.gserviceaccount.com</code>
+    <button 
+        type="button" 
+        class="btn btn-sm btn-outline-secondary ms-1 copy-btn" 
+        data-copy-target="service-account-email"
+        title="Salin ke Clipboard"
+        style="border-radius: 0.25rem;"
+    >
+        <i class="bi bi-clipboard"></i>
+    </button>
+</li>
+
                     <li>Pastikan izin akses diset ke <strong>Editor</strong>.</li>
                     <li>Salin <strong>link</strong> spreadsheet tersebut, lalu tempelkan ke form di bawah.</li>
                 </ol>
@@ -250,7 +261,7 @@
                 <input type="hidden" name="ttd_nip_2_input" value="">
 
                 <div class="text-end mt-4 pt-3 border-top">
-                    <button type="submit" class="btn btn-success px-4" id="btn-save-ttd">
+                    <button type="submit" class="btn btn-secondary px-4" id="btn-save-ttd">
                         <i class="ti ti-save me-1"></i> Simpan Pengaturan TTD
                     </button>
                 </div>
@@ -262,6 +273,29 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const targetId = this.getAttribute('data-copy-target');
+            const text = document.getElementById(targetId)?.innerText || '';
+
+            if (!text) return;
+
+            navigator.clipboard.writeText(text).then(() => {
+                // Ganti icon sementara jadi centang
+                this.innerHTML = '<i class="bi bi-check-lg text-success"></i>';
+                this.title = "Tersalin!";
+                setTimeout(() => {
+                    this.innerHTML = '<i class="bi bi-clipboard"></i>';
+                    this.title = "Salin ke Clipboard";
+                }, 1500);
+            }).catch(err => {
+                console.error("Gagal menyalin:", err);
+                alert("Gagal menyalin teks!");
+            });
+        });
+    });
+});
         document.addEventListener("DOMContentLoaded", function () {
             const existingYears = @json($existingYears ?? []);
             const activeYear = "{{ $activeYear ?? '' }}";
@@ -394,6 +428,7 @@
                     document.querySelector(`input[name="${hiddenName}"]`).value = visibleValue;
                 });
             });
+            
 
         });
     </script>
