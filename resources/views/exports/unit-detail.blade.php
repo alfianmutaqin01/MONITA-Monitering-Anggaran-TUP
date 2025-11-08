@@ -5,79 +5,54 @@
     <meta charset="UTF-8">
     <title>Detail Unit {{ $kode }} - TW {{ $currentTw }}</title>
     <style>
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 11px;
-            margin: 10px;
-        }
+        @page { margin: 2cm; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
+        .header-kop { text-align: center; margin-bottom: 15px; }
+        .header-kop h1 { font-size: 16px; margin: 0; padding: 0; }
+        .header-kop h2 { font-size: 14px; margin: 0; padding: 0; }
 
-        th,
-        td {
-            border: 1px solid #000;
-            padding: 5px;
-            text-align: left;
-            vertical-align: top;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { border: 1px solid #000; padding: 4px; vertical-align: top; }
+        th { background: #d7d7d7; text-align: center; font-weight: bold; }
 
-        th {
-            background: #d7d7d7;
-            text-align: center;
-        }
-
-        h3,
-        h4 {
-            text-align: center;
-            margin: 0;
-        }
-
-        .text-end {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .summary-table {
-            margin-top: 25px;
-            width: 60%;
-            border-collapse: collapse;
-        }
-
-        .summary-table th,
-        .summary-table td {
-            border: 1px solid #000;
-            padding: 5px;
-        }
-
-        .summary-table th {
-            background: #f2f2f2;
-        }
+        .summary-table { margin-top: 25px; width: 60%; border-collapse: collapse; margin-left: 0; }
+        .summary-table th, .summary-table td { border: 1px solid #000; padding: 5px; }
+        .summary-table th { background: #f2f2f2; text-align: left; }
+        
+        .text-end { text-align: right; }
+        .text-center { text-align: center; }
+        .info-cetak { font-size: 9px; margin-top: 10px; color: #555; text-align: right; }
     </style>
 </head>
 
 <body>
-    <h3>DETAIL ANGGARAN UNIT {{ strtoupper($kode) }}</h3>
-    <h4>Triwulan {{ $currentTw }}</h4>
+    {{-- KOP DOKUMEN --}}
+    <div class="header-kop">
+        <h1>SISTEM MONITORING ANGGARAN (MONITA)</h1>
+        <h2>TELKOM UNIVERSITY PURWOKERTO</h2>
+        <hr style="border: 1px solid #000;">
+    </div>
+    
+    <h3 style="text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 14px;">
+        DETAIL ANGGARAN UNIT {{ strtoupper($kode) }}
+    </h3>
+    <h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">
+        Triwulan {{ $currentTw }}
+    </h4>
 
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>Tipe</th>
-                <th>DRK/TUP</th>
-                <th>Akun</th>
-                <th>Nama Akun</th>
-                <th>Uraian</th>
-                <th>Anggaran</th>
-                <th>Realisasi</th>
-                <th>Saldo</th>
+                <th style="width: 3%;">No</th>
+                <th style="width: 6%;">Tipe</th>
+                <th style="width: 10%;">DRK/TUP</th>
+                <th style="width: 7%;">Akun</th>
+                <th style="width: 18%;">Nama Akun</th>
+                <th style="width: 25%;">Uraian</th>
+                <th style="width: 8%;">Anggaran</th>
+                <th style="width: 8%;">Realisasi</th>
+                <th style="width: 8%;">Saldo</th>
             </tr>
         </thead>
         <tbody>
@@ -126,12 +101,12 @@
         }
     @endphp
 
-    <h4 style="margin-top:25px;">Rekap Saldo per Jenis Anggaran</h4>
+    <h4 style="margin-top:25px; text-align: left;">Rekap Saldo per Jenis Anggaran</h4>
     <table class="summary-table">
         <thead>
             <tr>
-                <th>Jenis Anggaran</th>
-                <th class="text-end">Jumlah Saldo (Rp)</th>
+                <th style="width: 50%;">Jenis Anggaran</th>
+                <th style="width: 50%;" class="text-end">Jumlah Saldo (Rp)</th>
             </tr>
         </thead>
         <tbody>
@@ -157,12 +132,12 @@
             </tr>
         </tbody>
     </table>
+    
     @include('exports.components.ttd')
 
-    <p style="margin-top:20px; font-size:10px; text-align:right;">
-        Dicetak pada: {{ now()->format('d F Y H:i') }}
-    </p>
-
+    <div class="info-cetak">
+        Dokumen ini dicetak oleh Sistem MONITA pada: {{ $date }}
+    </div>
 </body>
 
 </html>

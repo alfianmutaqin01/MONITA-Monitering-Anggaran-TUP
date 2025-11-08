@@ -1,53 +1,37 @@
+// views/exports/summary-pengembangan.blade.php
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
     <meta charset="UTF-8">
-    <title>Summary Pengembangan TW {{ $tw }}</title>
+    <title>Laporan Realisasi Pengembangan TW {{ $tw }}</title>
     <style>
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 11px;
-            margin: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th,
-        td {
-            border: 1px solid #000;
-            padding: 5px;
-            vertical-align: top;
-        }
-
-        th {
-            background: #d7d7d7;
-            text-align: center;
-        }
-
-        h3,
-        h4 {
-            text-align: center;
-            margin: 0;
-        }
-
-        .text-end {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
+        @page { margin: 2cm; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 10px; }
+        .header-kop { text-align: center; margin-bottom: 15px; }
+        .header-kop h1 { font-size: 16px; margin: 0; padding: 0; }
+        .header-kop h2 { font-size: 14px; margin: 0; padding: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { border: 1px solid #000; padding: 4px; vertical-align: top; }
+        th { background: #d7d7d7; text-align: center; font-weight: bold; }
+        .text-end { text-align: right; }
+        .text-center { text-align: center; }
+        .info-cetak { font-size: 9px; margin-top: 10px; color: #555; text-align: right; }
     </style>
 </head>
 
 <body>
-    <h3>LAPORAN REALISASI PENGEMBANGAN (BANGUNAN)</h3>
-    <h4>Triwulan {{ $tw }}</h4>
+    <div class="header-kop">
+        <h1>SISTEM MONITORING ANGGARAN (MONITA)</h1>
+        <h2>TELKOM UNIVERSITY PURWOKERTO</h2>
+        <hr style="border: 1px solid #000;">
+    </div>
+    
+    <h3 style="text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 14px;">
+        LAPORAN REALISASI PENGEMBANGAN (BANGUNAN)
+    </h3>
+    <h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">
+        Triwulan {{ $tw }}
+    </h4>
 
     <table>
         <thead>
@@ -81,12 +65,11 @@
             @endforelse
         </tbody>
     </table>
+    
     @include('exports.components.ttd')
 
-    {{-- Sertakan blok TTD jika Anda sudah menambahkan partial seperti saran sebelumnya --}}
-    @if (view()->exists('exports.components.ttd'))
-        @include('exports.components.ttd')
-    @endif
+    <div class="info-cetak">
+        Dokumen ini dicetak oleh Sistem MONITA pada: {{ $date }}
+    </div>
 </body>
-
 </html>

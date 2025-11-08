@@ -103,11 +103,6 @@ class DashboardController extends Controller
 
         $sheetName = "SUMMARY TW " . $this->toRoman($currentTw);
 
-        // 🔹 Range yang ingin diambil (C:Kode, T:Serapan All, M:RKA Operasi, Q:Real Operasional)
-        // Note: Berdasarkan range ini, sepertinya chart Anda adalah:
-        // - chart-serapan: Serapan All (Kolom T)
-        // - chart-rka: RKA Operasi (Kolom M)
-        // - chart-operasional: Real Operasional (Kolom Q) -> NAMA CHART DI VIEW PERLU DICEK
         $startRow = 6;
         $endRow = 55;
         $ranges = [
@@ -161,13 +156,13 @@ class DashboardController extends Controller
             'currentTw' => $currentTw
         ]);
     } catch (\Google\Service\Exception $e) {
-        // 🔸 Tangkap error dari Google API
+        //Tangkap error dari Google API
         return redirect()
             ->route('settings.index')
             ->with('error', 'Terjadi kesalahan saat mengambil data dari Google Sheets. 
                 Pastikan file spreadsheet tahun aktif sudah lengkap untuk sheet: ' . $this->spreadsheetId);
     } catch (\Exception $e) {
-        // 🔸 Tangkap error umum
+        //Tangkap error umum
         return redirect()
             ->route('settings.index')
             ->with('error', 'Dashboard gagal dimuat: ' . $e->getMessage());

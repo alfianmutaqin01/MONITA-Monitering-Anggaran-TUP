@@ -30,8 +30,6 @@ class SummaryController extends Controller
         return new Google_Service_Sheets($client);
     }
 
-    // 💡 Fungsi parseNumber dan toRoman sekarang dipanggil dari FormatDataTrait
-
     public function index($tw)
 {
     $tw = max(1, min(4, (int)$tw)); // clamp 1–4
@@ -59,14 +57,14 @@ class SummaryController extends Controller
             ->get($this->spreadsheetId, $range)
             ->getValues() ?? [];
 
-        // Jika sheet ditemukan tapi datanya kosong → arahkan juga ke settings
+        // Jika sheet ditemukan tapi datanya kosong → arahkan ke settings
         if (empty($values) || count(array_filter($values, fn($r) => !empty(array_filter($r)))) === 0) {
             return redirect()
                 ->route('settings.index')
                 ->with('warning', "Data summary untuk '{$sheetName}' belum tersedia atau masih kosong. Harap lengkapi data di Google Sheets terlebih dahulu.");
         }
 
-        // Parsing data seperti sebelumnya
+        // Parsing data
         $data = [];
         foreach ($values as $i => $r) {
             if (empty(array_filter($r))) continue;
