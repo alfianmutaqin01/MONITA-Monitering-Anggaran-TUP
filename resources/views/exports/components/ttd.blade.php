@@ -12,25 +12,32 @@
 @endphp
 
 <div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd;">
-    <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
-        <tr border="0">
+    {{-- Hapus border-collapse: collapse; karena ini adalah tabel pembatas. --}}
+    <table style="width: 100%; font-size: 11px; border: none; border-collapse: collapse;">
+        {{-- Hapus tag <h5> yang tidak valid di dalam <tr> --}}
+        
+        <tr style="border: none;">
             {{-- TTD Kiri --}}
-            <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px;">
+            <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px; border: none;">
+                {{-- 🚩 PERBAIKAN: Tanggal ditaruh di kolom Kanan (Pembuat) --}}
                 <div style="margin-bottom: 60px;">
                     Mengetahui,<br>
-                    <strong>{{ $ttdJabatan1 }}</strong>
+                    {{ $ttdJabatan1 }}
                 </div>
                 <div style="margin-top: 80px;">
-                    <strong><u>{{ $ttdNama1 }}</u></strong><br>
+                    <u>{{ $ttdNama1 }}</u><br>
                     NIP: {{ $ttdNip1 }}
                 </div>
             </td>
             
             {{-- TTD Kanan --}}
-            <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px;">
-                
+            <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px; border: none;">
+                <div style="margin-bottom: 60px;">
+                    Purwokerto, {{ $tanggal }}<br>
+                    {{ $ttdJabatan2 }}
+                </div>
                 <div style="margin-top: 80px;">
-                    <strong><u>{{ $ttdNama2 }}</u></strong><br>
+                    <u>{{ $ttdNama2 }}</u><br>
                     NIP: {{ $ttdNip2 }}
                 </div>
             </td>

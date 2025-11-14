@@ -8,8 +8,6 @@ use Google_Service_Sheets;
 use Carbon\Carbon;
 use Exception;
 
-// Asumsikan kita akan memindahkan normalizePercent dan toRoman ke BaseController atau Trait,
-// Untuk saat ini, kita akan menyimpannya sebagai protected methods di sini.
 class DashboardController extends Controller
 {
     protected $spreadsheetId;
@@ -34,7 +32,6 @@ class DashboardController extends Controller
             'valueRenderOption' => 'UNFORMATTED_VALUE'
         ]);
         $value = $response->getValues()[0][0] ?? 0;
-        // Penanganan nilai non-numerik yang lebih ringkas
         if (!is_numeric($value)) $value = preg_replace('/[^0-9.\-]/', '', (string)$value);
         return (float) $value;
     }
@@ -74,13 +71,11 @@ class DashboardController extends Controller
     try {
         $service = $this->getGoogleSheetService();
 
-        // 🔹 Ambil saldo TW
         $saldoTW1 = $this->getCellValue($service, 'SUMMARY TW I!H39');
         $saldoTW2 = $this->getCellValue($service, 'SUMMARY TW II!H39');
         $saldoTW3 = $this->getCellValue($service, 'SUMMARY TW III!H39');
         $saldoTW4 = $this->getCellValue($service, 'SUMMARY TW IV!H39');
 
-        // 🔹 Tentukan triwulan default otomatis
         $month = Carbon::now()->month;
         $defaultTw = match (true) {
             $month >= 1 && $month <= 3 => 1,
@@ -89,15 +84,12 @@ class DashboardController extends Controller
             default => 4,
         };
 
-        // 🔹 Ambil triwulan dari query
         $currentTw = (int) $request->query('tw', 0);
 
         if ($currentTw === 0) {
-            // Jika tidak ada query 'tw', redirect ke triwulan default
             return redirect()->route('dashboard', ['tw' => $defaultTw]);
         }
         
-        // Memastikan currentTw valid (1-4)
         $currentTw = max(1, min(4, $currentTw));
 
 
@@ -112,7 +104,7 @@ class DashboardController extends Controller
             "{$sheetName}!Q{$startRow}:Q{$endRow}",  // Real Operasional
         ];
 
-        // 🔹 Ambil batch data
+        // Ambil batch data
         $batch = $service->spreadsheets_values->batchGet($this->spreadsheetId, [
             'ranges' => $ranges,
             'valueRenderOption' => 'UNFORMATTED_VALUE'

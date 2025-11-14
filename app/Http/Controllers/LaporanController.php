@@ -6,11 +6,11 @@ use Illuminate\Http\Request;
 use Google_Client;
 use Google_Service_Sheets;
 use Exception;
-use App\Traits\FormatDataTrait; // Menggunakan Trait utilitas
+use App\Traits\FormatDataTrait; 
 
 class LaporanController extends Controller
 {
-    use FormatDataTrait; // 🚩 Implementasi Trait
+    use FormatDataTrait; // Implementasi Trait
 
     protected $spreadsheetId;
 
@@ -24,7 +24,6 @@ class LaporanController extends Controller
         $client = new Google_Client();
         $client->setApplicationName('MONITA - Laporan');
         $client->setScopes([Google_Service_Sheets::SPREADSHEETS_READONLY]);
-        // Diasumsikan file credentials/service-account.json sudah ada
         $client->setAuthConfig(storage_path('app/credentials/service-account.json')); 
         return new Google_Service_Sheets($client);
     }
@@ -52,7 +51,6 @@ class LaporanController extends Controller
             $values = $response->getValues() ?? [];
 
         } catch (Exception $e) {
-            // 🚩 Penanganan Error API: Arahkan ke Settings jika ada masalah koneksi/tab
             if (str_contains($e->getMessage(), 'Unable to parse range') ||
                 str_contains($e->getMessage(), 'Requested entity was not found')) {
                 return redirect()
@@ -77,7 +75,7 @@ class LaporanController extends Controller
             $row = array_pad($row, 10, '');
             if (count(array_filter($row)) === 0) continue;
             
-            // Menggunakan parseNumber dari Trait
+            // parseNumber dari Trait
             $data[] = [
                 'no'         => $no++,
                 'kode_besar' => $row[0] ?? '',
@@ -93,10 +91,8 @@ class LaporanController extends Controller
             ];
         }
 
-        // === AMBIL DAFTAR UNIT (untuk filter dropdown) ===
-        $units = $this->getUnitList($service); // Memanggil helper unit list (akan dibuat)
+        $units = $this->getUnitList($service); 
 
-        // === FILTER LOGIC (Unit dan Type) ===
         $filterUnit = $request->query('unit');
         $filterType = $request->query('type', 'all');
 
@@ -107,7 +103,6 @@ class LaporanController extends Controller
         if ($filterType !== 'all') {
             $data = array_values(array_filter($data, function ($d) use ($filterType) {
                 $type = strtoupper($d['tipe'] ?? '');
-                // Menggunakan str_contains untuk filtering
                 return match ($filterType) { 
                     'operasional' => str_contains($type, 'OPER'),
                     'remun'       => str_contains($type, 'REMUN'),
@@ -118,14 +113,12 @@ class LaporanController extends Controller
             }));
         }
 
-        // Memberi nomor ulang setelah filtering
         foreach ($data as $i => &$row) $row['no'] = $i + 1;
         
         $viewName = "main.laporan.tw{$tw}";
         return view($viewName, compact('data', 'tw', 'units', 'filterUnit', 'filterType'));
     }
     
-    // 🚩 Tambahkan helper untuk mengambil daftar unit (diperlukan untuk dropdown filter)
     private function getUnitList($service)
     {
         try {
@@ -139,7 +132,6 @@ class LaporanController extends Controller
             }
             return array_values(array_unique($units));
         } catch (Exception $e) {
-            // Jika Users tab bermasalah, kembalikan array kosong agar filter tidak crash
             return [];
         }
     }

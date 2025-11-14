@@ -69,6 +69,7 @@
     @include('exports.components.ttd')
 
     <div class="info-cetak">
+        <br>
         Dokumen ini dicetak oleh Sistem MONITA pada: {{ $date }}
     </div>
 </body>

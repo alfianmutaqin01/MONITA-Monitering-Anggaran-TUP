@@ -63,18 +63,16 @@ class AuthController extends Controller
                     }
                 }
                 
-                // PLAIN TEXT (fallback untuk migrasi)
+                // PLAIN TEXT 
                 if (!$isHashed && $storedPassword === $inputPassword) {
                     $loggedIn = true;
                 }
             
                 if ($loggedIn) {
-                    // Login berhasil -> simpan di session
                     Session::put('user_authenticated', true);
                     Session::put('user_data', $user);
                     Session::put('user_role', $user['role']);
                     
-                    // Clear cache units untuk memastikan data terbaru
                     $this->googleSheetService->clearUnitsCache();
                     
                     return redirect()->route('dashboard');

@@ -49,7 +49,7 @@
                                         @foreach($allUnits as $kode => $nama)
                                             <li class="pc-item unit-item" data-kode="{{ $kode }}" data-nama="{{ $nama }}">
                                                 <a class="pc-link" href="{{ route('unit.show', $kode) }}">
-                                                    <strong>{{ $kode }}</strong> - {{ $nama }}
+                                                    {{ $nama }}
                                                 </a>
                                             </li>
                                         @endforeach

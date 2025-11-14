@@ -186,72 +186,102 @@ class ExportController extends Controller
     }
 
     /* ======================== DETAIL UNIT EXPORT ======================== */
-    public function detailUnit(Request $request, $kode)
-    {
-        $service = $this->getGoogleSheetService();
+public function detailUnit(Request $request, $kode)
+{
+    $service = $this->getGoogleSheetService();
+    
+    $month = Carbon::now()->month;
+    $defaultTw = ($month <= 3) ? 1 : (($month <= 6) ? 2 : (($month <= 9) ? 3 : 4));
+    $currentTw = (int)$request->query('tw', $defaultTw);
+    $typeFilter = $request->query('type', 'all');
 
-        // ... (Logika pengambilan data tetap sama) ...
-        
-        $month = Carbon::now()->month;
-        $defaultTw = ($month <= 3) ? 1 : (($month <= 6) ? 2 : (($month <= 9) ? 3 : 4));
-        $currentTw = (int)$request->query('tw', $defaultTw);
-        $typeFilter = $request->query('type', 'all');
+    $sheetName = "RAW Data TW " . $this->toRoman($currentTw);
+    $range = "{$sheetName}!B2:J700";
 
-        $sheetName = "RAW Data TW " . $this->toRoman($currentTw);
-        $range = "{$sheetName}!B2:J700";
-
-        try {
-            $resp = $service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $resp->getValues() ?? [];
-        } catch (Exception $e) {
-            abort(500, 'Gagal membaca data Google Sheets: ' . $e->getMessage());
-        }
-
-        $data = [];
-        foreach ($values as $r) {
-            $r = array_pad($r, 9, '');
-            if (strtoupper(trim($r[0])) !== strtoupper($kode)) continue;
-
-            $type = strtoupper(trim($r[1] ?? ''));
-            if ($typeFilter !== 'all') {
-                if (
-                    ($typeFilter === 'operasional' && !str_contains($type, 'OPER')) ||
-                    ($typeFilter === 'remun' && !str_contains($type, 'REMUN')) ||
-                    ($typeFilter === 'bang' && !str_contains($type, 'BANG')) ||
-                    ($typeFilter === 'ntf' && !str_contains($type, 'NTF'))
-                ) continue;
-            }
-
-            $data[] = [
-                'tipe' => $r[1],
-                'drk_tup' => $r[2],
-                'akun' => $r[3],
-                'nama_akun' => $r[4],
-                'uraian' => $r[5],
-                'anggaran' => $this->parseNumber($r[6]),
-                'realisasi' => $this->parseNumber($r[7]),
-                'saldo' => $this->parseNumber($r[8]),
-            ];
-        }
-
-        $totalAnggaran = $totalRealisasi = $totalSaldo = 0;
-        foreach ($data as $i => &$row) {
-            $row['no'] = $i + 1;
-            $totalAnggaran += $row['anggaran'];
-            $totalRealisasi += $row['realisasi'];
-            $totalSaldo += $row['saldo'];
-        }
-
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.unit-detail', [
-            'kode' => $kode,
-            'data' => $data,
-            'currentTw' => $currentTw,
-            'totalAnggaran' => $totalAnggaran,
-            'totalRealisasi' => $totalRealisasi,
-            'totalSaldo' => $totalSaldo,
-            'date' => Carbon::now()->translatedFormat('d F Y H:i'),
-        ])->setPaper('a4', 'landscape');
-
-        return $pdf->download("Detail_Unit_{$kode}_TW{$currentTw}.pdf");
+    try {
+        $resp = $service->spreadsheets_values->get($this->spreadsheetId, $range);
+        $values = $resp->getValues() ?? [];
+    } catch (Exception $e) {
+        abort(500, 'Gagal membaca data Google Sheets: ' . $e->getMessage());
     }
+
+    $data = [];
+    $rekapData = [];
+
+    foreach ($values as $r) {
+        $r = array_pad($r, 9, '');
+        if (strtoupper(trim($r[0])) !== strtoupper($kode)) continue;
+
+        $type = strtoupper(trim($r[1] ?? ''));
+        
+        $rekapData[] = [
+            'tipe' => $r[1],
+            'drk_tup' => $r[2],
+            'akun' => $r[3],
+            'nama_akun' => $r[4],
+            'uraian' => $r[5],
+            'anggaran' => $this->parseNumber($r[6]),
+            'realisasi' => $this->parseNumber($r[7]),
+            'saldo' => $this->parseNumber($r[8]),
+        ];
+
+        // Filter untuk data detail (kedua filter)
+        if ($typeFilter !== 'all') {
+            if (
+                ($typeFilter === 'operasional' && !str_contains($type, 'OPER')) ||
+                ($typeFilter === 'remun' && !str_contains($type, 'REMUN')) ||
+                ($typeFilter === 'bang' && !str_contains($type, 'BANG')) ||
+                ($typeFilter === 'ntf' && !str_contains($type, 'NTF'))
+            ) continue;
+        }
+
+        $data[] = [
+            'tipe' => $r[1],
+            'drk_tup' => $r[2],
+            'akun' => $r[3],
+            'nama_akun' => $r[4],
+            'uraian' => $r[5],
+            'anggaran' => $this->parseNumber($r[6]),
+            'realisasi' => $this->parseNumber($r[7]),
+            'saldo' => $this->parseNumber($r[8]),
+        ];
+    }
+
+    $totalAnggaran = $totalRealisasi = $totalSaldo = 0;
+    foreach ($data as $i => &$row) {
+        $row['no'] = $i + 1;
+        $totalAnggaran += $row['anggaran'];
+        $totalRealisasi += $row['realisasi'];
+        $totalSaldo += $row['saldo'];
+    }
+
+    // Hitung rekap dari data yang hanya difilter triwulan
+    $sumByType = ['OPERASIONAL' => 0, 'REMUN' => 0, 'BANG' => 0, 'NTF' => 0];
+    foreach ($rekapData as $r) {
+        $t = strtoupper($r['tipe']);
+        $s = (float) $r['saldo'];
+        if (str_contains($t, 'OPER'))
+            $sumByType['OPERASIONAL'] += $s;
+        elseif (str_contains($t, 'REMUN'))
+            $sumByType['REMUN'] += $s;
+        elseif (str_contains($t, 'BANG'))
+            $sumByType['BANG'] += $s;
+        elseif (str_contains($t, 'NTF'))
+            $sumByType['NTF'] += $s;
+    }
+
+    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('exports.unit-detail', [
+        'kode' => $kode,
+        'data' => $data,
+        'currentTw' => $currentTw,
+        'totalAnggaran' => $totalAnggaran,
+        'totalRealisasi' => $totalRealisasi,
+        'totalSaldo' => $totalSaldo,
+        'date' => Carbon::now()->translatedFormat('d F Y H:i'),
+        'sumByType' => $sumByType, 
+        'typeFilter' => $typeFilter, 
+    ])->setPaper('a4', 'landscape');
+
+    return $pdf->download("Detail_Unit_{$kode}_TW{$currentTw}.pdf");
+}
 }
