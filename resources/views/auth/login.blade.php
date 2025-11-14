@@ -166,21 +166,6 @@
                 width: 90%;
             }
         }
-
-        /* === Fix: Hilangkan animasi naik saat klik tombol login === */
-        .card,
-        .card:hover,
-        .card:focus-within {
-            transform: none !important;
-            transition: none !important;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
-        }
-
-        .btn-login:active,
-        .btn-login:focus {
-            transform: none !important;
-            box-shadow: none !important;
-        }
     </style>
 </head>
 
@@ -189,12 +174,11 @@
     <div class="bg-animated">
         @for ($i = 0; $i < 14; $i++)
             <img src="{{ asset('images/icon.png') }}" alt="Floating Logo" class="floating-logo" style="
-                                top: {{ rand(5, 90) }}%;
-                                left: {{ rand(5, 90) }}%;
-                                animation-delay: {{ rand(0, 15) / 10 }}s;
-                                animation-duration: {{ rand(15, 35) }}s;
-                                width: {{ rand(60, 160) }}px;
-                            ">
+            top: {{ rand(5, 90) }}%;
+            left: {{ rand(5, 90) }}%;
+            animation-delay: {{ rand(0, 15) / 10 }}s;
+            animation-duration: {{ rand(15, 35) }}s;
+            width: {{ rand(60, 160) }}px;">
         @endfor
     </div>
 
@@ -236,10 +220,15 @@
                             <label for="username"><i class="ti ti-user me-1"></i> Username</label>
                         </div>
 
-                        <div class="form-floating mb-4">
-                            <input type="password" class="form-control" id="password" name="password"
+                        <div class="form-floating mb-4 position-relative">
+                            <input type="password" class="form-control pe-5" id="password" name="password"
                                 placeholder="Password" required>
                             <label for="password"><i class="ti ti-lock me-1"></i> Password</label>
+                            <button type="button"
+                                class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-3 bg-transparent border-0 text-muted"
+                                onclick="togglePassword()" style="z-index: 10;">
+                                <i class="ti ti-eye-off" id="eyeIcon"></i>
+                            </button>
                         </div>
 
                         <button type="submit" class="btn btn-login w-100">
@@ -259,6 +248,21 @@
     <script src="{{ asset('berry/assets/js/plugins/feather.min.js') }}"></script>
     <script>
         feather.replace();
+        function togglePassword() {
+            const password = document.getElementById('password');
+            const eyeIcon = document.getElementById('eyeIcon');
+
+            if (password.type === 'password') {
+                password.type = 'text';
+                eyeIcon.classList.remove('ti-eye-off');
+                eyeIcon.classList.add('ti-eye');
+            } else {
+                password.type = 'password';
+                eyeIcon.classList.remove('ti-eye');
+                eyeIcon.classList.add('ti-eye-off');
+            }
+            feather.replace();
+        }
     </script>
 </body>
 

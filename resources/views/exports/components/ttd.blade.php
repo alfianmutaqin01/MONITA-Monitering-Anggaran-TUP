@@ -13,7 +13,7 @@
 
 <div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd;">
     <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
-        <tr>
+        <tr border="0">
             {{-- TTD Kiri --}}
             <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px;">
                 <div style="margin-bottom: 60px;">
@@ -28,10 +28,7 @@
             
             {{-- TTD Kanan --}}
             <td style="width: 50%; text-align: center; vertical-align: top; padding: 0 20px;">
-                <div style="margin-bottom: 60px;">
-                    Purwokerto, {{ $tanggal }}<br>
-                    <strong>{{ $ttdJabatan2 }}</strong>
-                </div>
+                
                 <div style="margin-top: 80px;">
                     <strong><u>{{ $ttdNama2 }}</u></strong><br>
                     NIP: {{ $ttdNip2 }}

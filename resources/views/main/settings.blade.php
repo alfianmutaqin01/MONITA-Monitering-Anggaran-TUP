@@ -413,21 +413,57 @@
             // LOGIKA 3: SIMPAN DATA TTD
             // ===================================
             document.getElementById('form-ttd').addEventListener('submit', function (e) {
-                // Transfer nilai ke hidden inputs
-                const mappings = [
-                    ['jabatan_1', 'ttd_jabatan_1_input'],
-                    ['nama_1', 'ttd_nama_1_input'],
-                    ['nip_1', 'ttd_nip_1_input'],
-                    ['jabatan_2', 'ttd_jabatan_2_input'],
-                    ['nama_2', 'ttd_nama_2_input'],
-                    ['nip_2', 'ttd_nip_2_input']
-                ];
-                
-                mappings.forEach(([visibleId, hiddenName]) => {
-                    const visibleValue = document.getElementById(visibleId)?.value || '';
-                    document.querySelector(`input[name="${hiddenName}"]`).value = visibleValue;
-                });
-            });
+    e.preventDefault(); // 🚩 BARU: Mencegah submit form standar (penting)
+    
+    // Transfer nilai dari input visible ke hidden inputs
+    const mappings = [
+        ['jabatan_1', 'ttd_jabatan_1_input'],
+        ['nama_1', 'ttd_nama_1_input'],
+        ['nip_1', 'ttd_nip_1_input'],
+        ['jabatan_2', 'ttd_jabatan_2_input'],
+        ['nama_2', 'ttd_nama_2_input'],
+        ['nip_2', 'ttd_nip_2_input']
+    ];
+    
+    mappings.forEach(([visibleId, hiddenName]) => {
+        const visibleValue = document.getElementById(visibleId)?.value || '';
+        document.querySelector(`input[name="${hiddenName}"]`).value = visibleValue;
+    });
+
+    const formData = new FormData(this); // Mengambil data form yang sudah di-update hidden inputnya
+
+    fetch("{{ route('settings.update') }}", {
+        method: 'POST',
+        headers: {
+             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+             "Accept": "application/json" // Minta JSON response
+        },
+        body: formData 
+    })
+    .then(r => {
+         if (!r.ok) {
+            // Handle error response (termasuk validasi 422)
+            return r.json().then(data => Promise.reject(data.message || 'Gagal menyimpan TTD.'));
+        }
+        return r.json();
+    })
+    .then(j => {
+        // Jika sukses, tampilkan SweetAlert dan reload
+        Swal.fire({
+            title: "Berhasil!",
+            text: j.message || "Pengaturan TTD berhasil disimpan.",
+            icon: "success",
+            confirmButtonColor: "#28a745",
+            timer: 1500,
+            showConfirmButton: false
+        }).then(() => {
+            window.location.reload(); // Memaksa reload halaman
+        });
+    })
+    .catch(error => {
+        Swal.fire("Error", error.toString(), "error");
+    });
+});
             
 
         });

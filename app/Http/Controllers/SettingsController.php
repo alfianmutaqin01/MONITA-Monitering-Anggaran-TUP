@@ -280,15 +280,18 @@ class SettingsController extends Controller
             $envContent = $this->setEnvValue('TTD_NIP_2', $request->ttd_nip_2_input, $envContent);
             
             try {
-                File::put(base_path('.env'), $envContent);
-                return redirect()
-                    ->route('settings.index')
-                    ->with('success', 'Data Penanda Tangan berhasil diperbarui.');
-            } catch (Exception $e) {
-                return redirect()
-                    ->route('settings.index')
-                    ->with('error', 'Gagal menyimpan data TTD: ' . $e->getMessage());
-            }
+        File::put(base_path('.env'), $envContent);
+        
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Data Penanda Tangan berhasil diperbarui.']);
+        }
+        return redirect()->route('settings.index')->with('success', 'Data Penanda Tangan berhasil diperbarui.');
+    } catch (Exception $e) {
+        if ($request->wantsJson()) {
+             return response()->json(['success' => false, 'message' => 'Gagal menyimpan data TTD: ' . $e->getMessage()], 500);
+        }
+        return redirect()->route('settings.index')->with('error', 'Gagal menyimpan data TTD: ' . $e->getMessage());
+    }
         }
 
         return redirect()
