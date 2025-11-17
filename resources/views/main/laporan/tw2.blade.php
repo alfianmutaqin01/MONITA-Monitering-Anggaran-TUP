@@ -2,15 +2,18 @@
 
 @section('content')
     @php
-        // 🚩 ASUMSI: Fungsi helper ini sudah tersedia secara global/trait
-        function formatRupiah($n) {
+        // ASUMSI: Fungsi helper ini sudah tersedia secara global/trait
+        function formatRupiah($n)
+        {
             $n = (float) $n;
             $rupiah = number_format(abs($n), 0, ',', '.');
             return ($n < 0) ? '(Rp ' . $rupiah . ')' : 'Rp ' . $rupiah;
         }
-        function formatPercentCell($s) {
+        function formatPercentCell($s)
+        {
             $s = trim((string) $s);
-            if ($s === '') return '-';
+            if ($s === '')
+                return '-';
             return $s; // Diasumsikan sudah dalam format persen atau kita tidak perlu menambahkan % di sini.
         }
     @endphp
@@ -42,10 +45,11 @@
                                 </option>
                             @endforeach
                         </select>
-                        <select name="type" class="form-select form-select-sm" 
+                        <select name="type" class="form-select form-select-sm"
                             style="font-size:0.9rem; padding:.5rem .8rem; min-width:180px;">
                             <option value="all" {{ ($filterType ?? 'all') == 'all' ? 'selected' : '' }}>Semua Jenis</option>
-                            <option value="operasional" {{ $filterType == 'operasional' ? 'selected' : '' }}>Operasional</option>
+                            <option value="operasional" {{ $filterType == 'operasional' ? 'selected' : '' }}>Operasional
+                            </option>
                             <option value="remun" {{ $filterType == 'remun' ? 'selected' : '' }}>Remun</option>
                             <option value="bang" {{ $filterType == 'bang' ? 'selected' : '' }}>Bang</option>
                             <option value="ntf" {{ $filterType == 'ntf' ? 'selected' : '' }}>NTF</option>
@@ -59,7 +63,7 @@
                 document.addEventListener("DOMContentLoaded", () => {
                     const form = document.getElementById("filterForm");
                     const selects = document.querySelectorAll('#filterForm select');
-                    
+
                     // Otomatis submit saat perubahan filter
                     selects.forEach(sel => {
                         sel.addEventListener('change', () => {
@@ -70,7 +74,7 @@
                 });
             </script>
 
-            {{-- 🚩 PERBAIKAN: Menghapus div .card yang redundan di sini --}}
+            {{-- PERBAIKAN: Menghapus div .card yang redundan di sini --}}
             <div class="table-responsive">
                 <table class="table table-bordered table-striped">
                     <thead class="bg-secondary text-white">
@@ -97,7 +101,7 @@
                                 <td class="align-middle text-nowrap">{{ $row['tipe'] }}</td>
                                 <td class="align-middle text-nowrap">{{ $row['drk_tup'] }}</td>
                                 <td class="align-middle text-nowrap">{{ $row['akun'] }}</td>
-                                
+
                                 {{-- Nama akun & uraian diatur agar wrap (turun baris) --}}
                                 <td class="align-middle text-wrap" style="max-width: 220px; white-space: normal;">
                                     {{ $row['nama_akun'] }}

@@ -306,9 +306,9 @@
                 overrideModal.show();
             @endif
             
-            // ===================================
+            
             // LOGIKA 1: KONFIRMASI AKTIVASI TAHUN (RADIO BUTTON)
-            // ===================================
+            
             document.querySelectorAll('.radio-active').forEach(radio => {
                 radio.addEventListener('change', function () {
                     const year = this.dataset.year;
@@ -376,9 +376,9 @@
                 });
             });
             
-            // ===================================
+            
             // LOGIKA 2: DETEKSI DUPLIKASI TAHUN PADA FORM SUBMIT
-            // ===================================
+            
             document.getElementById('form-spreadsheet').addEventListener('submit', function (e) {
                 const yearInput = document.getElementById('input-year').value.trim();
                 
@@ -409,11 +409,11 @@
                 }
             });
             
-            // ===================================
+            
             // LOGIKA 3: SIMPAN DATA TTD
-            // ===================================
+            
             document.getElementById('form-ttd').addEventListener('submit', function (e) {
-    e.preventDefault(); // 🚩 BARU: Mencegah submit form standar (penting)
+    e.preventDefault(); //BARU: Mencegah submit form standar (penting)
     
     // Transfer nilai dari input visible ke hidden inputs
     const mappings = [

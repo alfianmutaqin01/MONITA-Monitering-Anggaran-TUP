@@ -2,7 +2,7 @@
 
 @section('content')
     @php
-        // 🚩 PERBAIKAN: Fungsi helper ini harus dipindahkan ke Helper/Trait global.
+        // PERBAIKAN: Fungsi helper ini harus dipindahkan ke Helper/Trait global.
         // Dibiarkan di sini untuk fungsionalitas, tapi ini adalah BAD PRACTICE.
         function formatRupiah($n)
         {
@@ -13,7 +13,8 @@
         function formatPercentCell($s)
         {
             $s = trim((string) $s);
-            if ($s === '') return '-';
+            if ($s === '')
+                return '-';
             return (strpos($s, '%') === false) ? ($s . '%') : $s;
         }
     @endphp
@@ -30,13 +31,13 @@
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rka']) }}"
-                                        target="_blank">Realisasi RKA</a></li>
+                                    target="_blank">Realisasi RKA</a></li>
                             <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rkm']) }}"
-                                        target="_blank">Realisasi RKM</a></li>
+                                    target="_blank">Realisasi RKM</a></li>
                             <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'pengembangan']) }}"
-                                        target="_blank">Realisasi RKA Pengembangan</a></li>
+                                    target="_blank">Realisasi RKA Pengembangan</a></li>
                             <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'all']) }}"
-                                        target="_blank">Cetak Semua</a></li>
+                                    target="_blank">Cetak Semua</a></li>
                         </ul>
                     </div>
                 </div>
@@ -44,8 +45,8 @@
         </div>
 
         <div class="card-body">
-            {{-- 🚩 PERBAIKAN: Hanya gunakan satu div wrapper responsive --}}
-            <div class="table-responsive" style="max-height: 75vh;"> 
+            {{-- PERBAIKAN: Hanya gunakan satu div wrapper responsive --}}
+            <div class="table-responsive" style="max-height: 75vh;">
                 <table class="table table-bordered table-striped mb-0">
                     <thead class="bg-secondary text-white">
                         <tr class="text-center text-nowrap">
@@ -111,7 +112,7 @@
         .table-responsive {
             overflow-x: auto;
         }
-        
+
         .sticky-top {
             position: sticky;
             top: 0;

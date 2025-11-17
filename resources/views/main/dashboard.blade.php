@@ -16,7 +16,7 @@
                             </div>
                         </div>
                     </div>
-                    <span class="text-white d-block f-34 f-w-300 my-2">
+                    <span class="text-white d-block f-34 f-w-500 my-2">
                         Rp {{ number_format($saldoTW1, 0, ',', '.') }}
                     </span>
                     <p class="mb-0 opacity-75">Sisa Saldo Triwulan 1</p>
@@ -35,7 +35,7 @@
                             </div>
                         </div>
                     </div>
-                    <span class="text-white d-block f-34 f-w-300 my-2">
+                    <span class="text-white d-block f-34 f-w-500 my-2">
                         Rp {{ number_format($saldoTW2, 0, ',', '.') }}
                     </span>
                     <p class="mb-0 opacity-75">Sisa Saldo Triwulan 2</p>
@@ -54,7 +54,7 @@
                             </div>
                         </div>
                     </div>
-                    <span class="text-white d-block f-34 f-w-300 my-2">
+                    <span class="text-white d-block f-34 f-w-500 my-2">
                         Rp {{ number_format($saldoTW3, 0, ',', '.') }}
                     </span>
                     <p class="mb-0 opacity-75">Sisa Saldo Triwulan 3</p>
@@ -73,7 +73,7 @@
                             </div>
                         </div>
                     </div>
-                    <span class="text-white d-block f-34 f-w-300 my-2">
+                    <span class="text-white d-block f-34 f-w-500 my-2">
                         Rp {{ number_format($saldoTW4, 0, ',', '.') }}
                     </span>
                     <p class="mb-0 opacity-75">Sisa Saldo Triwulan 4</p>
@@ -108,7 +108,7 @@
                 </form>
             </div>
 
-            {{-- 🚩 PERBAIKAN: Bungkus setiap chart dengan div responsive agar scroll horizontal terjadi di dalam card --}}
+            {{-- PERBAIKAN: Bungkus setiap chart dengan div responsive agar scroll horizontal terjadi di dalam card --}}
             <div class="chart-container-wrapper table-responsive">
                 <div id="chart-serapan" style="height:320px; width: 1000px; min-width: 100%;"></div>
             </div>
@@ -141,7 +141,7 @@
 
             const maxVal = arr => Math.ceil(Math.max(...arr, 100) / 10) * 10;
 
-            // 🚩 PERBAIKAN: Tentukan lebar chart yang lebih lebar dari container normal (misal 1000px)
+            // PERBAIKAN: Tentukan lebar chart yang lebih lebar dari container normal (misal 1000px)
             // Ini akan memaksa div wrapper yang responsive (table-responsive) untuk scroll.
             const chartWidth = Math.max(1000, labels.length * 40);
 

@@ -11,7 +11,8 @@
         function formatPercentCell($s)
         {
             $s = trim((string) $s);
-            if ($s === '') return '-';
+            if ($s === '')
+                return '-';
             return (strpos($s, '%') === false) ? ($s . '%') : $s;
         }
 
@@ -36,10 +37,14 @@
                             <i class="bi bi-filetype-pdf me-1"></i> Ekspor PDF
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rka']) }}" target="_blank">Realisasi RKA</a></li>
-                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rkm']) }}" target="_blank">Realisasi RKM</a></li>
-                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'pengembangan']) }}" target="_blank">Realisasi RKA Pengembangan</a></li>
-                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'all']) }}" target="_blank">Cetak Semua</a></li>
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rka']) }}"
+                                    target="_blank">Realisasi RKA</a></li>
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rkm']) }}"
+                                    target="_blank">Realisasi RKM</a></li>
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'pengembangan']) }}"
+                                    target="_blank">Realisasi RKA Pengembangan</a></li>
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'all']) }}"
+                                    target="_blank">Cetak Semua</a></li>
                         </ul>
                     </div>
                 </div>
@@ -47,7 +52,7 @@
         </div>
 
         <div class="card-body">
-            <div class="table-responsive" style="max-height: 75vh;"> 
+            <div class="table-responsive" style="max-height: 75vh;">
                 <table class="table table-bordered table-striped mb-0">
                     <thead class="bg-secondary text-white">
                         <tr class="text-center text-nowrap">
@@ -73,8 +78,8 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- 🚩 LOOP HANYA PADA DATA NORMAL (TANPA BARIS TOTAL) --}}
-                        @forelse($dataForBody as $row) 
+                        {{-- LOOP HANYA PADA DATA NORMAL (TANPA BARIS TOTAL) --}}
+                        @forelse($dataForBody as $row)
                             <tr class="text-nowrap">
                                 <td class="text-center">{{ $row['no'] }}</td>
                                 <td>{{ $row['kode_pp'] }}</td>
@@ -103,29 +108,29 @@
                         @endforelse
                     </tbody>
                     @if($totalRow)
-                    <tfoot>
-                        <tr class="fw-bold text-nowrap" style="background-color: #d7d7d7;">
-                            {{-- Merge 4 Kolom Pertama --}}
-                            <td colspan="4" class="text-center">TOTAL KESELURUHAN</td>
-                            
-                            {{-- Tampilkan Nilai Total dari $totalRow --}}
-                            <td class="text-end">{{ formatRupiah($totalRow['anggaran_tw']) }}</td>
-                            <td class="text-end">{{ formatRupiah($totalRow['realisasi_tw']) }}</td>
-                            <td class="text-end">{{ formatRupiah($totalRow['saldo_tw']) }}</td>
-                            <td class="text-center">{{ formatPercentCell($totalRow['serapan_all']) }}</td>
-                            <td class="text-end">{{ formatRupiah($totalRow['rka_operasi']) }}</td>
-                            <td class="text-end">{{ formatRupiah($totalRow['real_operasi']) }}</td>
-                            <td class="text-end">{{ formatRupiah($totalRow['saldo_operasi']) }}</td>
-                            <td class="text-center">{{ formatPercentCell($totalRow['serapan_oper']) }}</td>
-                            <td class="text-end">{{ formatRupiah($totalRow['rka_bang']) }}</td>
-                            <td class="text-end">{{ formatRupiah($totalRow['real_bang']) }}</td>
-                            <td class="text-end">{{ formatRupiah($totalRow['sisa_bang']) }}</td>
-                            <td class="text-center">{{ formatPercentCell($totalRow['serapan_bang']) }}</td>
-                            <td class="text-end">{{($totalRow['rkm_operasi']) }}</td>
-                            <td class="text-end">{{($totalRow['real_rkm']) }}</td>
-                            <td class="text-center">{{ formatPercentCell($totalRow['persen_rkm']) }}</td>
-                        </tr>
-                    </tfoot>
+                        <tfoot>
+                            <tr class="fw-bold text-nowrap" style="background-color: #d7d7d7;">
+                                {{-- Merge 4 Kolom Pertama --}}
+                                <td colspan="4" class="text-center">TOTAL KESELURUHAN</td>
+
+                                {{-- Tampilkan Nilai Total dari $totalRow --}}
+                                <td class="text-end">{{ formatRupiah($totalRow['anggaran_tw']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['realisasi_tw']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['saldo_tw']) }}</td>
+                                <td class="text-center">{{ formatPercentCell($totalRow['serapan_all']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['rka_operasi']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['real_operasi']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['saldo_operasi']) }}</td>
+                                <td class="text-center">{{ formatPercentCell($totalRow['serapan_oper']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['rka_bang']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['real_bang']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['sisa_bang']) }}</td>
+                                <td class="text-center">{{ formatPercentCell($totalRow['serapan_bang']) }}</td>
+                                <td class="text-end">{{($totalRow['rkm_operasi']) }}</td>
+                                <td class="text-end">{{($totalRow['real_rkm']) }}</td>
+                                <td class="text-center">{{ formatPercentCell($totalRow['persen_rkm']) }}</td>
+                            </tr>
+                        </tfoot>
                     @endif
                 </table>
             </div>
@@ -138,7 +143,7 @@
         .table-responsive {
             overflow-x: auto;
         }
-        
+
         .sticky-top {
             position: sticky;
             top: 0;
