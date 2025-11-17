@@ -5,7 +5,7 @@
         <div class="m-header">
             {{-- <img src="{{ asset('public/images/Logo.png') }}" alt="Logo" class="logo logo-lg" /> --}}
             <a href="{{ route('dashboard') }}" class="b-brand text-primary">
-                <img src="{{ asset('images/icon.png') }}" alt="Logo" class="logo logo-lg" />
+                <img src="{{ asset('images/Logo.png') }}" alt="Logo" class="logo logo-lg" />
             </a>
         </div>
 

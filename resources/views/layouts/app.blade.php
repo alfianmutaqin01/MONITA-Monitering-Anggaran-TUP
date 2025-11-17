@@ -48,7 +48,7 @@
             to { opacity: 1; transform: scale(1); }
         }
         
-        /* 🚩 TAMENG UTAMA: Mencegah scroll global yang menyebabkan zooming/konten kependekan */
+        /* TAMENG UTAMA: Mencegah scroll global yang menyebabkan zooming/konten kependekan */
         body {
             overflow-x: hidden !important; 
         }

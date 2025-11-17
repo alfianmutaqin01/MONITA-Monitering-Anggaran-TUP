@@ -1,6 +1,5 @@
 <header class="pc-header">
     <div class="header-wrapper">
-        <!-- Kiri: tombol sidebar dan greeting -->
         <div class="me-auto pc-mob-drp d-flex align-items-center">
             <ul class="list-unstyled d-flex mb-0">
                 <li class="pc-h-item">
