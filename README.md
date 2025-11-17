@@ -11,6 +11,7 @@ MONITA adalah aplikasi web yang dirancang untuk menggantikan proses manual penge
 - [Instalasi dan Setup Lokal](#instalasi-dan-setup-lokal)
 - [Konfigurasi Google Sheets API](#konfigurasi-google-sheets-api)
 - [Keamanan dan Autentikasi](#keamanan-dan-autentikasi)
+- [Fitur Khusus](#fitur-khusus)
 
 ## 🎯 Tujuan Proyek
 
@@ -26,6 +27,8 @@ Tujuan utama sistem MONITA adalah mencapai efisiensi, akurasi, dan transparansi 
 - **Manajemen Anggaran (CRUD)**: Kemampuan untuk mengimpor data dari file Excel/CSV/Google Sheets serta mencatat transaksi keuangan
 - **Manajemen Akun**: Admin memiliki akses penuh untuk menambah, mengubah, dan menghapus akun unit, serta mengelola peran pengguna
 - **Pelaporan Otomatis**: Menghasilkan laporan keuangan terperinci dan ringkasan (Summary RKA, RKM, Pengembangan) dalam format PDF
+- **Preview Laporan PDF**: Fitur review laporan sebelum dicetak untuk memastikan akurasi data
+- **Keamanan Login**: Implementasi CAPTCHA untuk mencegah akses tidak sah
 - **Pengaturan Tahun Anggaran**: Mengelola koneksi ke Google Sheets ID untuk tahun anggaran yang berbeda-beda
 
 ## 🛠️ Teknologi yang Digunakan
@@ -37,7 +40,10 @@ Tujuan utama sistem MONITA adalah mencapai efisiensi, akurasi, dan transparansi 
 
 ### Frontend
 - **HTML5**, **CSS3**, **JavaScript ES6**
-- **Bootstrap** 5.3
+- **Bootstrap** 5.3.8
+- **Vite** 7.0.4 (Build Tool)
+- **Tailwind CSS** 4.0.0
+- **Axios** 1.11.0 (HTTP Client)
 
 ### Integrasi Data
 - **Google Sheets API v4** (sebagai primary database)
@@ -45,7 +51,7 @@ Tujuan utama sistem MONITA adalah mencapai efisiensi, akurasi, dan transparansi 
 - **Laravel Google Sheets** 7.1.4
 
 ### Package Pendukung
-- **Laravel DomPDF** 3.1.1 - untuk generate laporan PDF
+- **Laravel DomPDF** 3.1.1 - untuk generate laporan PDF dengan preview
 - **Carbon** 3.10.3 - untuk manipulasi waktu dan tanggal
 - **GuzzleHTTP** 7.10.0 - untuk HTTP client
 - **Firebase JWT** 6.11.1 - untuk autentikasi token
@@ -78,8 +84,9 @@ cd monita
 # Install PHP dependencies
 composer install
 
-# Install JavaScript dependencies (jika diperlukan)
+# Install JavaScript dependencies dan build assets
 npm install
+npm run build
 ```
 
 ### 3. Konfigurasi Environment
@@ -108,7 +115,10 @@ php artisan migrate
 
 ### 5. Menjalankan Aplikasi
 ```bash
-# Start development server
+# Development mode dengan hot reload
+npm run dev
+
+# Atau menggunakan Laravel development server
 php artisan serve
 
 # Akses aplikasi di browser
@@ -121,6 +131,13 @@ php artisan serve
 - Buat Service Account di [Google Cloud Console](https://console.cloud.google.com/)
 - Download file JSON credentials
 - Simpan file credentials di: `storage/app/credentials/service-account.json`
+
+**File Service Account Example:**
+```json
+{
+
+}
+```
 
 ### 2. Konfigurasi Google Sheets di Environment
 Tambahkan konfigurasi berikut di file `.env`:
@@ -148,17 +165,36 @@ Sistem menerapkan mekanisme keamanan yang kuat:
 ### Password Security
 - **Salting Kustom**: Setiap password dienkripsi dengan salt unik berdasarkan username pengguna menggunakan `Hash::make({password} . {username})`
 - **Rainbow Table Protection**: Teknik salting kustom mencegah serangan rainbow table
+- **Dual Authentication**: Support untuk password hashed dan plain text (migrasi bertahap)
 
 ### Autentikasi
 - **Session-based Authentication** untuk menjaga keamanan akses
 - **Role-based Access Control (RBAC)** dengan dua level akses:
   - **Admin Keuangan**: Akses penuh ke semua fitur
   - **User Unit**: Akses terbatas hanya untuk data unit masing-masing
+- **CAPTCHA Protection**: Implementasi CAPTCHA pada halaman login untuk mencegah brute force attacks
 
 ### Validasi Data
 - Validasi keunikan untuk **Kode PP** dan **Username**
 - Pembatasan akses data antar unit berdasarkan otorisasi
 - Audit trail untuk memantau perubahan data
+
+## 🌟 Fitur Khusus
+
+### 1. Preview Laporan PDF
+- **Review sebelum cetak**: Fitur preview laporan PDF sebelum proses pencetakan
+- **Validasi data**: Memastikan akurasi dan kelengkapan data sebelum generate laporan final
+- **Custom template**: Template laporan yang profesional dengan header dan footer institusi
+
+### 2. Sistem CAPTCHA Login
+- **Keamanan tambahan**: Mencegah akses otomatis dan brute force attacks
+- **User-friendly**: Implementasi yang mudah digunakan namun efektif
+- **Customizable**: Dapat disesuaikan dengan kebutuhan keamanan institusi
+
+### 3. Integrasi Real-time dengan Google Sheets
+- **Data terpusat**: Semua data tersimpan terpusat di Google Sheets
+- **Sinkronisasi otomatis**: Perubahan data langsung tersinkronisasi
+- **Backup otomatis**: Data tersimpan aman di cloud Google
 
 ## 📊 Kebutuhan Non-Fungsional
 
@@ -168,13 +204,13 @@ Sistem menerapkan mekanisme keamanan yang kuat:
 | **Reliability** | Import data Excel dengan tingkat kegagalan < 1% per bulan |
 | **Performance** | Menampilkan data transaksi dalam < 3 detik |
 | **Scalability** | Mendukung minimal 100 pengguna aktif bersamaan |
-| **Security** | HTTPS encryption, autentikasi login, dan role-based access control |
+| **Security** | HTTPS encryption, autentikasi login, CAPTCHA, dan role-based access control |
 
 ## 📞 Support
 
 Untuk pertanyaan atau bantuan teknis, silakan hubungi tim pengembang:
-- Alfian Mutakim
-- Hamid Khaeruman
+- **Alfian Mutakim** 
+- **Hamid Khaeruman** 
 
 ---
 
