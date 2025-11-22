@@ -15,17 +15,16 @@
                             </div>
                         </div>
                     </div>
-
-                    <span class="text-dark d-block f-34 f-w-500 my-2">
-                        {{ $totalAll ?? 'Rp 0' }}
-                        <i class="ti ti-arrow-up-right-circle opacity-50"></i>
+                    <span class="amount-wrapper">
+                        <span class="amount-text">
+                            {{ $totalAll ?? 'Rp 0' }}
+                        </span>
                     </span>
                     <p class="mb-0 opacity-50">Total Saldo Saat Ini</p>
                 </div>
             </div>
         </div>
 
-        {{-- Kolom tengah: dua kartu kecil (Operasional + Bang) --}}
         <div class="col-xl-4 col-md-12 mb-3">
             <div class="card dashnum-card dashnum-card-small overflow-hidden mb-3">
                 <span class="round bg-secondary small"></span>

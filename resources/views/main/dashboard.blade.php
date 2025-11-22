@@ -9,16 +9,17 @@
                 <span class="round small"></span>
                 <span class="round big"></span>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <div class="avtar avtar-lg">
-                                <h2 class="text-white">I</h2>
-                            </div>
+                    <div class="col-auto">
+                        <div class="bg-dark bg-opacity-25 rounded d-flex align-items-center justify-content-center"
+                            style="width: 48px; height: 48px;">
+                            <span class="text-white fw-bold fs-3">I</span>
                         </div>
                     </div>
-                    <span class="text-white d-block f-34 f-w-500 my-2">
-                        Rp {{ number_format($saldoTW1, 0, ',', '.') }}
-                    </span>
+                    <div class="amount-wrapper mt-1">
+                        <span class="text-white amount-text">
+                            Rp {{ number_format($saldoTW1, 0, ',', '.') }}
+                        </span>
+                    </div>
                     <p class="mb-0 opacity-75">Sisa Saldo Triwulan 1</p>
                 </div>
             </div>
@@ -28,16 +29,18 @@
                 <span class="round small"></span>
                 <span class="round big"></span>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <div class="avtar avtar-lg">
-                                <h2 class="text-white">II</h2>
-                            </div>
+                    <div class="col-auto">
+                        <div class="bg-dark bg-opacity-25 rounded d-flex align-items-center justify-content-center"
+                            style="width: 48px; height: 48px;">
+                            <span class="text-white fw-bold fs-3">II</span>
                         </div>
                     </div>
-                    <span class="text-white d-block f-34 f-w-500 my-2">
-                        Rp {{ number_format($saldoTW2, 0, ',', '.') }}
-                    </span>
+                    <div class="amount-wrapper mt-1">
+                        <span class="text-white amount-text">
+                            Rp {{ number_format($saldoTW2, 0, ',', '.') }}
+                        </span>
+                    </div>
+
                     <p class="mb-0 opacity-75">Sisa Saldo Triwulan 2</p>
                 </div>
             </div>
@@ -47,16 +50,17 @@
                 <span class="round small"></span>
                 <span class="round big"></span>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <div class="avtar avtar-lg">
-                                <h2 class="text-white">III</h2>
-                            </div>
+                    <div class="col-auto">
+                        <div class="bg-dark bg-opacity-25 rounded d-flex align-items-center justify-content-center"
+                            style="width: 48px; height: 48px;">
+                            <span class="text-white fw-bold fs-3">III</span>
                         </div>
                     </div>
-                    <span class="text-white d-block f-34 f-w-500 my-2">
-                        Rp {{ number_format($saldoTW3, 0, ',', '.') }}
-                    </span>
+                    <div class="amount-wrapper mt-1">
+                        <span class="text-white amount-text">
+                            Rp {{ number_format($saldoTW3, 0, ',', '.') }}
+                        </span>
+                    </div>
                     <p class="mb-0 opacity-75">Sisa Saldo Triwulan 3</p>
                 </div>
             </div>
@@ -66,16 +70,17 @@
                 <span class="round small"></span>
                 <span class="round big"></span>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-                            <div class="avtar avtar-lg">
-                                <h2 class="text-white">IV</h2>
-                            </div>
+                    <div class="col-auto">
+                        <div class="bg-dark bg-opacity-25 rounded d-flex align-items-center justify-content-center"
+                            style="width: 48px; height: 48px;">
+                            <span class="text-white fw-bold fs-3">IV</span>
                         </div>
                     </div>
-                    <span class="text-white d-block f-34 f-w-500 my-2">
-                        Rp {{ number_format($saldoTW4, 0, ',', '.') }}
-                    </span>
+                    <div class="amount-wrapper mt-1">
+                        <span class="text-white amount-text">
+                            Rp {{ number_format($saldoTW4, 0, ',', '.') }}
+                        </span>
+                    </div>
                     <p class="mb-0 opacity-75">Sisa Saldo Triwulan 4</p>
                 </div>
 
