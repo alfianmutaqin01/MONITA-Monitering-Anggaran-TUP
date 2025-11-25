@@ -57,5 +57,22 @@ class AppServiceProvider extends ServiceProvider
                 'userUnitNama' => $userUnitNama,
             ]);
         });
+        
+        Validator::extend('recaptcha', function ($attribute, $value, $parameters, $validator) {
+            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                'secret' => config('services.recaptcha.secret_key'),
+                'response' => $value,
+                'remoteip' => request()->ip(),
+            ]);
+
+            $result = $response->json();
+
+            // Gagal jika sukses bukan true atau skor di bawah ambang batas (misal: 0.5)
+            if (!($result['success'] ?? false) || ($result['score'] ?? 0) < 0.5) {
+                return false;
+            }
+
+            return true;
+        });
     }
 }

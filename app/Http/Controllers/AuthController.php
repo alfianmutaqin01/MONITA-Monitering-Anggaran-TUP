@@ -32,9 +32,15 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        // Perintah untuk memvalidasi input, termasuk token reCaptcha V3
         $request->validate([
             'username' => 'required',
             'password' => 'required',
+            'g-recaptcha-response' => 'required|recaptcha',
+        ], [
+            // Pesan error kustom untuk validasi reCaptcha
+            'g-recaptcha-response.required' => 'Verifikasi reCAPTCHA wajib diisi.',
+            'g-recaptcha-response.recaptcha' => 'Verifikasi reCAPTCHA gagal. Silakan coba lagi.',
         ]);
 
         try {

@@ -212,11 +212,11 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('login.attempt') }}">
+                    <form method="POST" action="{{ route('login.attempt') }}" id="login-form">
                         @csrf
                         <div class="form-floating mb-3">
                             <input type="text" class="form-control" id="username" name="username" placeholder="Username"
-                                required>
+                                value="{{ old('username') }}" required>
                             <label for="username"><i class="ti ti-user me-1"></i> Username</label>
                         </div>
 
@@ -230,6 +230,9 @@
                                 <i class="ti ti-eye-off" id="eyeIcon"></i>
                             </button>
                         </div>
+
+                        {{-- Hidden input for reCAPTCHA response token --}}
+                        <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
 
                         <button type="submit" class="btn btn-login w-100">
                             <i class="ti ti-login me-1"></i> Masuk ke MONITA
@@ -263,6 +266,21 @@
             }
             feather.replace();
         }
+    </script>
+
+    {{-- Scripts for Google reCAPTCHA v3 --}}
+    <script src="https://www.google.com/recaptcha/api.js?render={{ config('services.recaptcha.site_key') }}"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            let form = this;
+            grecaptcha.ready(function () {
+                grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', { action: 'login' }).then(function (token) {
+                    document.getElementById('g-recaptcha-response').value = token;
+                    form.submit();
+                });
+            });
+        });
     </script>
 </body>
 
