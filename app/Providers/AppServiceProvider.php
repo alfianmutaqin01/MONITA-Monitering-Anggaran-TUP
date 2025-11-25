@@ -4,8 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
-use App\Services\GoogleSheetService;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
+use App\Services\GoogleSheetService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,10 +31,10 @@ class AppServiceProvider extends ServiceProvider
                 // Ambil data units dari Google Sheets
                 $googleSheetService = app(GoogleSheetService::class);
                 $unitsFromSheet = $googleSheetService->getUnitsFromSheet();
-                
+
                 // Gunakan data dari Google Sheets, fallback ke config
                 $allUnits = !empty($unitsFromSheet) ? $unitsFromSheet : config('units', []);
-                
+
             } catch (\Exception $e) {
                 \Log::error('Error loading units from Google Sheets: ' . $e->getMessage());
                 // Fallback ke config file
@@ -58,17 +59,20 @@ class AppServiceProvider extends ServiceProvider
                 'userUnitNama' => $userUnitNama,
             ]);
         });
-        
+
+        /**
+         * Validator reCaptcha Google v3
+         */
         Validator::extend('recaptcha', function ($attribute, $value, $parameters, $validator) {
             $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                'secret' => config('services.recaptcha.secret_key'),
+                'secret'   => config('services.recaptcha.secret_key'),
                 'response' => $value,
                 'remoteip' => request()->ip(),
             ]);
 
             $result = $response->json();
 
-            // Gagal jika sukses bukan true atau skor di bawah ambang batas (misal: 0.5)
+            // Valid jika success = true dan score >= 0.5
             if (!($result['success'] ?? false) || ($result['score'] ?? 0) < 0.5) {
                 return false;
             }
