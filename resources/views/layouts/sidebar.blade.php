@@ -2,10 +2,10 @@
 
     <div class="navbar-wrapper">
         <!-- Logo -->
-        <div class="m-header">
-            {{-- <img src="{{ asset('public/images/Logo.png') }}" alt="Logo" class="logo logo-lg" /> --}}
-            <a href="{{ route('dashboard') }}" class="b-brand text-primary">
-                <img src="{{ asset('images/Logo.png') }}" alt="Logo" class="logo logo-lg" />
+        <div class="m-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <a href="{{ route('dashboard') }}" class="b-brand text-primary d-block text-center">
+                <img src="{{ asset('images/Logo.png') }}" alt="Logo Telkom University" class="img-fluid"
+                    style="max-width: 30%; height: auto; display: block; margin: 0 auto;">
             </a>
         </div>
 

@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Hash;
 use Exception;
 use App\Services\GoogleSheetService;
+use App\Models\LoginActivity;
+
 
 class AuthController extends Controller
 {
@@ -31,57 +33,89 @@ class AuthController extends Controller
     }
 
     public function login(Request $request)
-    {
-        $request->validate([
-            'username' => 'required',
-            'password' => 'required',
+{
+    $request->validate([
+        'username' => 'required',
+        'password' => 'required',
+    ]);
+
+    try {
+        $users = $this->loadUsers();
+    } catch (Exception $e) {
+
+        // INSERT LOGIN FAILED
+        LoginActivity::create([
+            'username'   => $request->username,
+            'role'       => '-',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->header('User-Agent'),
+            'login_time' => now(),
+            'status'     => 'failed',
         ]);
 
-        try {
-            $users = $this->loadUsers();
-        } catch (Exception $e) {
-            return redirect()->back()->withErrors([
-                'login' => 'Gagal terhubung ke Google Sheets. Pesan: ' . $e->getMessage()
-            ])->withInput();
-        }
+        return redirect()->back()->withErrors([
+            'login' => 'Gagal terhubung ke Google Sheets. Pesan: ' . $e->getMessage()
+        ])->withInput();
+    }
 
-        $inputUsername = trim($request->username);
-        foreach ($users as $user) {
-            if (isset($user['username']) && trim($user['username']) === $inputUsername) {
-                
-                $inputPassword = $request->password;
-                $storedPassword = $user['password'];
-                $isHashed = Hash::info($storedPassword)['algoName'] !== 'unknown';
-                
-                $loggedIn = false;
+    $inputUsername = trim($request->username);
 
-                // HASHED
-                if ($isHashed) {
-                    $passwordWithSalt = $inputPassword . $inputUsername;
-                    if (Hash::check($passwordWithSalt, $storedPassword)) {
-                        $loggedIn = true;
-                    }
-                }
-                
-                // PLAIN TEXT 
-                if (!$isHashed && $storedPassword === $inputPassword) {
+    foreach ($users as $user) {
+        if (isset($user['username']) && trim($user['username']) === $inputUsername) {
+            
+            $inputPassword = $request->password;
+            $storedPassword = $user['password'];
+            $isHashed = Hash::info($storedPassword)['algoName'] !== 'unknown';
+            
+            $loggedIn = false;
+
+            if ($isHashed) {
+                $passwordWithSalt = $inputPassword . $inputUsername;
+                if (Hash::check($passwordWithSalt, $storedPassword)) {
                     $loggedIn = true;
                 }
-            
-                if ($loggedIn) {
-                    Session::put('user_authenticated', true);
-                    Session::put('user_data', $user);
-                    Session::put('user_role', $user['role']);
-                    
-                    $this->googleSheetService->clearUnitsCache();
-                    
-                    return redirect()->route('dashboard');
-                }
+            }
+
+            if (!$isHashed && $storedPassword === $inputPassword) {
+                $loggedIn = true;
+            }
+
+            if ($loggedIn) {
+
+                // INSERT LOGIN SUCCESS
+                LoginActivity::create([
+                    'username'   => $user['username'],
+                    'role'       => $user['role'],
+                    'ip_address' => $request->ip(),
+                    'user_agent' => $request->header('User-Agent'),
+                    'login_time' => now(),
+                    'status'     => 'success',
+                ]);
+
+                Session::put('user_authenticated', true);
+                Session::put('user_data', $user);
+                Session::put('user_role', $user['role']);
+                
+                $this->googleSheetService->clearUnitsCache();
+
+                return redirect()->route('dashboard');
             }
         }
-
-        return redirect()->back()->withErrors(['login' => 'Username atau password salah.'])->withInput();
     }
+
+    // LOGIN FAILED - PASSWORD SALAH
+    LoginActivity::create([
+        'username'   => $request->username,
+        'role'       => '-',
+        'ip_address' => $request->ip(),
+        'user_agent' => $request->header('User-Agent'),
+        'login_time' => now(),
+        'status'     => 'failed',
+    ]);
+
+    return redirect()->back()->withErrors(['login' => 'Username atau password salah.'])->withInput();
+}
+
 
     public function logout()
     {

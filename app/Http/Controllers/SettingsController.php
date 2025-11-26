@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use App\Models\LoginActivity;
 use Exception;
 
 class SettingsController extends Controller
@@ -78,14 +79,15 @@ class SettingsController extends Controller
             }
         }
         
-        // Ambil data TTD dari ENV
         $ttdData = $this->getTTDDataFromEnv($envContent);
         
         return view('main.settings', [
             'sheetYears' => $sheetYears,
             'ttdData' => $ttdData,
             'activeYear' => env('ACTIVE_YEAR'),
-            'existingYears' => array_keys($sheetYears), // Kirim data tahun existing ke view
+            'existingYears' => array_keys($sheetYears), 
+            'loginLogs' => LoginActivity::orderBy('login_time', 'desc')->limit(10)->get(),
+
         ]);
     }
 

@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        date_default_timezone_set('Asia/Jakarta');
         // Share data ke semua view
         View::composer('*', function ($view) {
             try {
@@ -30,12 +31,10 @@ class AppServiceProvider extends ServiceProvider
                 $googleSheetService = app(GoogleSheetService::class);
                 $unitsFromSheet = $googleSheetService->getUnitsFromSheet();
                 
-                // Gunakan data dari Google Sheets, fallback ke config
                 $allUnits = !empty($unitsFromSheet) ? $unitsFromSheet : config('units', []);
                 
             } catch (\Exception $e) {
                 \Log::error('Error loading units from Google Sheets: ' . $e->getMessage());
-                // Fallback ke config file
                 $allUnits = config('units', []);
             }
 
