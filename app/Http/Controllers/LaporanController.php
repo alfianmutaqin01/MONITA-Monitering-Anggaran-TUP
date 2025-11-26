@@ -7,25 +7,17 @@ use Google_Client;
 use Google_Service_Sheets;
 use Exception;
 use App\Traits\FormatDataTrait; 
+use App\Services\GoogleSheetService;
 
 class LaporanController extends Controller
 {
     use FormatDataTrait; // Implementasi Trait
 
-    protected $spreadsheetId;
+    protected $googleSheetService;
 
-    public function __construct()
+    public function __construct(GoogleSheetService $googleSheetService)
     {
-        $this->spreadsheetId = env('GOOGLE_SPREADSHEET_ID');
-    }
-
-    private function getGoogleSheetService()
-    {
-        $client = new Google_Client();
-        $client->setApplicationName('MONITA - Laporan');
-        $client->setScopes([Google_Service_Sheets::SPREADSHEETS_READONLY]);
-        $client->setAuthConfig(storage_path('app/credentials/service-account.json')); 
-        return new Google_Service_Sheets($client);
+        $this->googleSheetService = $googleSheetService;
     }
 
     /**
@@ -34,75 +26,45 @@ class LaporanController extends Controller
     public function index(Request $request, $tw = 1)
     {
         $tw = max(1, min(4, (int)$tw));
-        $service = $this->getGoogleSheetService();
-
-        $sheetMap = [
-            1 => 'RAW Data TW I',
-            2 => 'RAW Data TW II',
-            3 => 'RAW Data TW III',
-            4 => 'RAW Data TW IV',
-        ];
-
-        $sheetName = $sheetMap[intval($tw)] ?? $sheetMap[1];
-        $range = "{$sheetName}!A2:J700";
-
         try {
-            $response = $service->spreadsheets_values->get($this->spreadsheetId, $range);
-            $values = $response->getValues() ?? [];
-
+            $data = $this->googleSheetService->getLaporan($tw);
         } catch (Exception $e) {
-            if (str_contains($e->getMessage(), 'Unable to parse range') ||
+             if (str_contains($e->getMessage(), 'Unable to parse range') ||
                 str_contains($e->getMessage(), 'Requested entity was not found')) {
                 return redirect()
                     ->route('settings.index')
-                    ->with('warning', "Tab {$sheetName} tidak ditemukan pada spreadsheet aktif. Pastikan file Google Sheet memiliki tab dengan nama tersebut.");
+                    ->with('warning', "Tab untuk TW {$tw} tidak ditemukan pada spreadsheet aktif.");
             }
             return redirect()
                 ->route('settings.index')
                 ->with('error', 'Gagal memuat data laporan: ' . $e->getMessage());
         }
 
-        // Jika tab ditemukan tapi kosong
-        if (empty($values)) {
+        if (empty($data)) {
             return redirect()
                 ->route('settings.index')
-                ->with('warning', "Data pada tab <strong>{$sheetName}</strong> tidak ditemukan atau kosong. Silakan periksa kelengkapan data Google Sheet Anda.");
+                ->with('warning', "Data pada tab TW {$tw} tidak ditemukan atau kosong.");
         }
 
-        $data = [];
-        $no = 1;
-        foreach ($values as $row) {
-            $row = array_pad($row, 10, '');
-            if (count(array_filter($row)) === 0) continue;
-            
-            // parseNumber dari Trait
-            $data[] = [
-                'no'         => $no++,
-                'kode_besar' => $row[0] ?? '',
-                'unit'       => $row[1] ?? '',
-                'tipe'       => $row[2] ?? '',
-                'drk_tup'    => $row[3] ?? '',
-                'akun'       => $row[4] ?? '',
-                'nama_akun'  => $row[5] ?? '',
-                'uraian'     => $row[6] ?? '',
-                'anggaran'   => $this->parseNumber($row[7] ?? ''),
-                'realisasi'  => $this->parseNumber($row[8] ?? ''),
-                'saldo'      => $this->parseNumber($row[9] ?? ''),
-            ];
-        }
-
-        $units = $this->getUnitList($service); 
+        // Ambil list unit dari service (menggunakan data yang sudah ada di service)
+        // Kita bisa menggunakan getUnitsFromSheet() yang sudah ada di service
+        // Namun getUnitsFromSheet mengembalikan array key-value [code => name]
+        // Sedangkan LaporanController sebelumnya mengambil list code saja.
+        // Kita pakai array_keys dari getUnitsFromSheet()
+        $unitsMap = $this->googleSheetService->getUnitsFromSheet();
+        $units = array_keys($unitsMap);
 
         $filterUnit = $request->query('unit');
         $filterType = $request->query('type', 'all');
 
+        // Filtering pada Collection of Objects
         if ($filterUnit) {
-            $data = array_values(array_filter($data, fn($d) => strcasecmp(trim($d['unit']), trim($filterUnit)) === 0));
+            $data = array_values(array_filter($data, fn($d) => strcasecmp(trim($d->unit), trim($filterUnit)) === 0));
         }
 
         if ($filterType !== 'all') {
             $data = array_values(array_filter($data, function ($d) use ($filterType) {
-                $type = strtoupper($d['tipe'] ?? '');
+                $type = strtoupper($d->tipe ?? '');
                 return match ($filterType) { 
                     'operasional' => str_contains($type, 'OPER'),
                     'remun'       => str_contains($type, 'REMUN'),
@@ -113,26 +75,12 @@ class LaporanController extends Controller
             }));
         }
 
-        foreach ($data as $i => &$row) $row['no'] = $i + 1;
+        // Re-index number
+        foreach ($data as $i => $row) {
+            $row->no = $i + 1;
+        }
         
         $viewName = "main.laporan.tw{$tw}";
         return view($viewName, compact('data', 'tw', 'units', 'filterUnit', 'filterType'));
-    }
-    
-    private function getUnitList($service)
-    {
-        try {
-            $unitResp = $service->spreadsheets_values->get($this->spreadsheetId, 'Users!B3:B100');
-            $unitVals = $unitResp->getValues() ?? [];
-            $units = [];
-            foreach ($unitVals as $r) {
-                if (!empty(trim((string)($r[0] ?? '')))) {
-                    $units[] = trim((string)$r[0]);
-                }
-            }
-            return array_values(array_unique($units));
-        } catch (Exception $e) {
-            return [];
-        }
     }
 }
