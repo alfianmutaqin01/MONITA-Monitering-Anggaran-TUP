@@ -2,8 +2,6 @@
 
 @section('content')
     @php
-        // PERBAIKAN: Fungsi helper ini harus dipindahkan ke Helper/Trait global.
-        // Dibiarkan di sini untuk fungsionalitas, tapi ini adalah BAD PRACTICE.
         function formatRupiah($n)
         {
             $n = (float) $n;
@@ -16,6 +14,15 @@
             if ($s === '')
                 return '-';
             return (strpos($s, '%') === false) ? ($s . '%') : $s;
+        }
+
+        //UNTUK MENGHINDARI DUPLIKASI
+        $dataForBody = $data; // Default: Semua data
+        $totalRow = null;
+
+        if (!empty($data) && count($data) > 0) {
+            $totalRow = end($data);
+            $dataForBody = array_slice($data, 0, count($data) - 1);
         }
     @endphp
 
@@ -34,8 +41,8 @@
                                     target="_blank">Realisasi RKA</a></li>
                             <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rkm']) }}"
                                     target="_blank">Realisasi RKM</a></li>
-                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'pengembangan']) }}"
-                                    target="_blank">Realisasi RKA Pengembangan</a></li>
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'bang']) }}"
+                                    target="_blank">Realisasi Bang</a></li>
                             <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'all']) }}"
                                     target="_blank">Cetak Semua</a></li>
                         </ul>
@@ -45,12 +52,10 @@
         </div>
 
         <div class="card-body">
-            {{-- PERBAIKAN: Hanya gunakan satu div wrapper responsive --}}
             <div class="table-responsive" style="max-height: 75vh;">
                 <table class="table table-bordered table-striped mb-0">
                     <thead class="bg-secondary text-white">
                         <tr class="text-center text-nowrap">
-                            {{-- Header dibuat nowrap untuk memastikan 19 kolom selalu sejajar --}}
                             <th class="text-white sticky-top" style="min-width: 60px;">NO</th>
                             <th class="text-white sticky-top" style="min-width: 100px;">KODE PP</th>
                             <th class="text-white sticky-top" style="min-width: 200px;">NAMA PP</th>
@@ -73,8 +78,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($data as $row)
-                            <tr class="{{ $loop->last ? 'fw-bold' : '' }} text-nowrap">
+                        {{-- LOOP HANYA PADA DATA NORMAL (TANPA BARIS TOTAL) --}}
+                        @forelse($dataForBody as $row)
+                            <tr class="text-nowrap">
                                 <td class="text-center">{{ $row['no'] }}</td>
                                 <td>{{ $row['kode_pp'] }}</td>
                                 <td>{{ $row['nama_pp'] }}</td>
@@ -97,10 +103,35 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="19" class="text-center">Tidak ada data</td>
+                                <td colspan="19" class="text-center">Tidak ada data unit yang tersedia.</td>
                             </tr>
                         @endforelse
                     </tbody>
+                    @if($totalRow)
+                        <tfoot>
+                            <tr class="fw-bold text-nowrap" style="background-color: #d7d7d7;">
+                                {{-- Merge 4 Kolom Pertama --}}
+                                <td colspan="4" class="text-center">TOTAL KESELURUHAN</td>
+
+                                {{-- Tampilkan Nilai Total dari $totalRow --}}
+                                <td class="text-end">{{ formatRupiah($totalRow['anggaran_tw']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['realisasi_tw']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['saldo_tw']) }}</td>
+                                <td class="text-center">{{ formatPercentCell($totalRow['serapan_all']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['rka_operasi']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['real_operasi']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['saldo_operasi']) }}</td>
+                                <td class="text-center">{{ formatPercentCell($totalRow['serapan_oper']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['rka_bang']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['real_bang']) }}</td>
+                                <td class="text-end">{{ formatRupiah($totalRow['sisa_bang']) }}</td>
+                                <td class="text-center">{{ formatPercentCell($totalRow['serapan_bang']) }}</td>
+                                <td class="text-end">{{($totalRow['rkm_operasi']) }}</td>
+                                <td class="text-end">{{($totalRow['real_rkm']) }}</td>
+                                <td class="text-center">{{ formatPercentCell($totalRow['persen_rkm']) }}</td>
+                            </tr>
+                        </tfoot>
+                    @endif
                 </table>
             </div>
         </div>
