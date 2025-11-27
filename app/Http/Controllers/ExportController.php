@@ -170,11 +170,11 @@ class ExportController extends Controller
         $view = match (strtolower($type)) {
             'rka' => 'exports.summary-rka',
             'rkm' => 'exports.summary-rkm',
-            'pengembangan' => 'exports.summary-pengembangan',
+            'bang' => 'exports.summary-bang',
             default => 'exports.summary-all',
         };
         
-        $orientation = ($type === 'rka') ? 'landscape' : 'portrait';
+        $orientation = ($type === 'rka') ? 'portrait' : 'portrait';
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($view, [
             'data' => $data,

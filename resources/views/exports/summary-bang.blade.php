@@ -1,4 +1,3 @@
-// views/exports/summary-pengembangan.blade.php
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -27,8 +26,7 @@
     </div>
     
     <h3 style="text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 14px;">
-        LAPORAN REALISASI PENGEMBANGAN (BANGUNAN)
-    </h3>
+        LAPORAN REALISASI BANG    </h3>
     <h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">
         Triwulan {{ $tw }}
     </h4>
@@ -40,8 +38,8 @@
                 <th>Kode PP</th>
                 <th>Nama PP</th>
                 <th>Bidang</th>
-                <th class="text-end">RKA Bangunan</th>
-                <th class="text-end">Realisasi Bangunan</th>
+                <th class="text-end">RKA bang</th>
+                <th class="text-end">Realisasi bang</th>
                 <th>Sisa Bang</th>
                 <th>% Serapan Bang</th>
             </tr>

@@ -64,6 +64,10 @@
             color: #555;
             text-align: right;
         }
+
+        .page-break {
+            page-break-before: always;
+        }
     </style>
 </head>
 
@@ -75,7 +79,7 @@
     </div>
 
     <h3 style="text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 14px;">
-        LAPORAN RINGKAS SEMUA REALISASI
+        LAPORAN REALISASI RKA
     </h3>
     <h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">
         TRIWULAN {{ $tw }}
@@ -88,46 +92,123 @@
                 <th>Kode PP</th>
                 <th>Nama PP</th>
                 <th>Bidang</th>
-                <th class="text-end">Saldo RKA</th>
-                <th class="text-end">Saldo RKM</th>
-                <th class="text-end">Saldo Bangunan</th>
+                <th>Anggaran TW {{ $tw }}</th>
+                <th>Realisasi TW {{ $tw }}</th>
+                <th>Saldo TW {{ $tw }}</th>
+                <th>% Serapan All</th>
             </tr>
         </thead>
         <tbody>
-            @php
-                $totalSaldoRKA = 0;
-                $totalRealRKM = 0;
-                $totalSisaBang = 0;
-            @endphp
             @foreach($data as $r)
                 <tr>
                     <td class="text-center">{{ $r['no'] }}</td>
                     <td>{{ $r['kode_pp'] }}</td>
                     <td>{{ $r['nama_pp'] }}</td>
                     <td>{{ $r['bidang'] }}</td>
-                    <td class="text-end">{{ number_format($r['saldo_operasi'], 0, ',', '.') }}</td>
-                    <td class="text-end">{{ number_format($r['real_rkm'], 0, ',', '.') }}</td>
-                    <td class="text-end">{{ number_format($r['sisa_bang'], 0, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($r['anggaran_tw'], 0, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($r['realisasi_tw'], 0, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($r['saldo_tw'], 0, ',', '.') }}</td>
+                    <td class="text-center">{{ $r['serapan_all'] }}</td>
                 </tr>
-                @php
-                    // Akumulasi total
-                    $totalSaldoRKA += $r['saldo_operasi'];
-                    $totalRealRKM += $r['real_rkm'];
-                    $totalSisaBang += $r['sisa_bang'];
-                @endphp
             @endforeach
         </tbody>
+    </table>
+    @include('exports.components.ttd')
+    <div class="info-cetak">
+        <br>
+        Dokumen ini dicetak oleh Sistem MONITA pada: {{ $date }}
+    </div>
+    <div class="page-break"></div>
+    <div class="header-kop">
+        <h1>SISTEM MONITORING ANGGARAN (MONITA)</h1>
+        <h2>TELKOM UNIVERSITY PURWOKERTO</h2>
+        <hr style="border: 1px solid #000;">
+    </div>
 
-        {{-- FOOTER TOTAL --}}
-        <tfoot>
-            <tr style="font-weight:bold; background:#e0e0e0;">
-                {{-- Merge 4 Kolom Pertama (No, Kode PP, Nama PP, Bidang) --}}
-                <td colspan="4" class="text-center">TOTAL KESELURUHAN</td>
-                <td class="text-end">{{ number_format($totalSaldoRKA, 0, ',', '.') }}</td>
-                <td class="text-end">{{ number_format($totalRealRKM, 0, ',', '.') }}</td>
-                <td class="text-end">{{ number_format($totalSisaBang, 0, ',', '.') }}</td>
+    <h3 style="text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 14px;">
+        LAPORAN REALISASI RKM
+    </h3>
+    <h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">
+        TRIWULAN {{ $tw }}
+    </h4>
+
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Kode PP</th>
+                <th>Nama PP</th>
+                <th>Bidang</th>
+                <th>RKM</th>
+                <th>Realisasi RKM</th>
+                <th>% RKM</th>
             </tr>
-        </tfoot>
+        </thead>
+        <tbody>
+            @foreach($data as $r)
+                <tr>
+                    <td class="text-center">{{ $r['no'] }}</td>
+                    <td>{{ $r['kode_pp'] }}</td>
+                    <td>{{ $r['nama_pp'] }}</td>
+                    <td>{{ $r['bidang'] }}</td>
+                    <td class="text-end">{{ number_format($r['rkm_operasi'], 0, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($r['real_rkm'], 0, ',', '.') }}</td>
+                    <td class="text-center">{{ $r['persen_rkm'] }}</td>
+                </tr>
+            @endforeach
+        </tbody>
+    </table>
+
+    @include('exports.components.ttd')
+
+    <div class="info-cetak">
+        <br>
+        Dokumen ini dicetak oleh Sistem MONITA pada: {{ $date }}
+    </div>
+    <div class="page-break"></div>
+    <div class="header-kop">
+        <h1>SISTEM MONITORING ANGGARAN (MONITA)</h1>
+        <h2>TELKOM UNIVERSITY PURWOKERTO</h2>
+        <hr style="border: 1px solid #000;">
+    </div>
+
+    <h3 style="text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 14px;">
+        LAPORAN REALISASI BANG </h3>
+    <h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">
+        Triwulan {{ $tw }}
+    </h4>
+
+    <table>
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Kode PP</th>
+                <th>Nama PP</th>
+                <th>Bidang</th>
+                <th class="text-end">RKA bang</th>
+                <th class="text-end">Realisasi bang</th>
+                <th>Sisa Bang</th>
+                <th>% Serapan Bang</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($data as $r)
+                <tr>
+                    <td class="text-center">{{ $r['no'] }}</td>
+                    <td>{{ $r['kode_pp'] }}</td>
+                    <td>{{ $r['nama_pp'] }}</td>
+                    <td>{{ $r['bidang'] }}</td>
+                    <td class="text-end">{{ number_format($r['rka_bang'] ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($r['real_bang'] ?? 0, 0, ',', '.') }}</td>
+                    <td class="text-end">{{ number_format($r['sisa_bang'], 0, ',', '.') }}</td>
+                    <td class="text-center">{{ $r['serapan_bang'] ?? '-' }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="8" class="text-center">Tidak ada data</td>
+                </tr>
+            @endforelse
+        </tbody>
     </table>
 
     @include('exports.components.ttd')

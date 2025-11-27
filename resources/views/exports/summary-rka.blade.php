@@ -27,7 +27,7 @@
     </div>
     
     <h3 style="text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 14px;">
-        LAPORAN REALISASI RKA (RENCANA KERJA ANGGARAN)
+        LAPORAN REALISASI RKA
     </h3>
     <h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">
         TRIWULAN {{ $tw }}
@@ -44,10 +44,6 @@
                 <th>Realisasi TW {{ $tw }}</th>
                 <th>Saldo TW {{ $tw }}</th>
                 <th>% Serapan All</th>
-                <th>RKA Operasi</th>
-                <th>Real Operasi</th>
-                <th>Saldo Operasi</th>
-                <th>% Serapan Operasi</th>
             </tr>
         </thead>
         <tbody>
@@ -61,10 +57,6 @@
                 <td class="text-end">{{ number_format($r['realisasi_tw'],0,',','.') }}</td>
                 <td class="text-end">{{ number_format($r['saldo_tw'],0,',','.') }}</td>
                 <td class="text-center">{{ $r['serapan_all'] }}</td>
-                <td class="text-end">{{ number_format($r['rka_operasi'],0,',','.') }}</td>
-                <td class="text-end">{{ number_format($r['real_operasi'],0,',','.') }}</td>
-                <td class="text-end">{{ number_format($r['saldo_operasi'],0,',','.') }}</td>
-                <td class="text-center">{{ $r['serapan_oper'] }}</td>
             </tr>
             @endforeach
         </tbody>

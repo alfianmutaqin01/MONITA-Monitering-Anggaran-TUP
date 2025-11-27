@@ -41,8 +41,8 @@
                                     target="_blank">Realisasi RKA</a></li>
                             <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'rkm']) }}"
                                     target="_blank">Realisasi RKM</a></li>
-                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'pengembangan']) }}"
-                                    target="_blank">Realisasi RKA Pengembangan</a></li>
+                            <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'bang']) }}"
+                                    target="_blank">Realisasi Bang</a></li>
                             <li><a class="dropdown-item" href="{{ route('export.summary', [$tw, 'all']) }}"
                                     target="_blank">Cetak Semua</a></li>
                         </ul>

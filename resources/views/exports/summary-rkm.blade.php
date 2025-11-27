@@ -30,7 +30,7 @@
     </div>
     
     <h3 style="text-align: center; margin-top: 0; margin-bottom: 5px; font-size: 14px;">
-        LAPORAN REALISASI RKM (RENCANA KERJA MINGGUAN)
+        LAPORAN REALISASI RKM
     </h3>
     <h4 style="text-align: center; margin-bottom: 15px; font-size: 12px;">
         TRIWULAN {{ $tw }}
