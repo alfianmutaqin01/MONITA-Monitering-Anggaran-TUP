@@ -278,6 +278,9 @@
                 grecaptcha.execute('{{ config('services.recaptcha.site_key') }}', { action: 'login' }).then(function (token) {
                     document.getElementById('g-recaptcha-response').value = token;
                     form.submit();
+                }).catch(function(error) {
+                    console.error('reCaptcha Error:', error);
+                    alert('Gagal memverifikasi reCaptcha. Silakan periksa koneksi internet Anda dan coba lagi.');
                 });
             });
         });

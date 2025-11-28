@@ -64,20 +64,31 @@ class AppServiceProvider extends ServiceProvider
          * Validator reCaptcha Google v3
          */
         Validator::extend('recaptcha', function ($attribute, $value, $parameters, $validator) {
-            $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                'secret'   => config('services.recaptcha.secret_key'),
-                'response' => $value,
-                'remoteip' => request()->ip(),
-            ]);
+            try {
+                $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                    'secret'   => config('services.recaptcha.secret_key'),
+                    'response' => $value,
+                    'remoteip' => request()->ip(),
+                ]);
 
-            $result = $response->json();
+                $result = $response->json();
 
-            // Valid jika success = true dan score >= 0.5
-            if (!($result['success'] ?? false) || ($result['score'] ?? 0) < 0.5) {
+                // Jika success false, return false
+                if (!($result['success'] ?? false)) {
+                    return false;
+                }
+
+                // Validasi score (turunkan ke 0.3 agar tidak terlalu ketat)
+                if (($result['score'] ?? 0) < 0.3) {
+                    return false;
+                }
+
+                return true;
+            } catch (\Exception $e) {
+                // Log error jika terjadi masalah koneksi ke Google
+                \Log::error('reCaptcha Validation Error: ' . $e->getMessage());
                 return false;
             }
-
-            return true;
         });
     }
 }
