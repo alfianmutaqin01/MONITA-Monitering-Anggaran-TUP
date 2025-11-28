@@ -65,13 +65,32 @@ class AppServiceProvider extends ServiceProvider
          */
         Validator::extend('recaptcha', function ($attribute, $value, $parameters, $validator) {
             try {
-                $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
-                    'secret'   => config('services.recaptcha.secret_key'),
-                    'response' => $value,
-                    'remoteip' => request()->ip(),
-                ]);
+                \Log::info('reCaptcha Token:', ['token' => $value]);
 
-                $result = $response->json();
+                // $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
+                //     'secret'   => config('services.recaptcha.secret_key'),
+                //     'response' => $value,
+                //     // 'remoteip' => request()->ip(), // Optional, sometimes causes issues on localhost
+                // ]);
+                // $result = $response->json();
+
+                $url = 'https://www.google.com/recaptcha/api/siteverify';
+                $data = [
+                    'secret' => config('services.recaptcha.secret_key'),
+                    'response' => $value
+                ];
+                $options = [
+                    'http' => [
+                        'header'  => "Content-type: application/x-www-form-urlencoded\r\n",
+                        'method'  => 'POST',
+                        'content' => http_build_query($data)
+                    ]
+                ];
+                $context  = stream_context_create($options);
+                $resultJson = file_get_contents($url, false, $context);
+                $result = json_decode($resultJson, true);
+
+                \Log::info('reCaptcha Result (Raw):', $result);
 
                 // Jika success false, return false
                 if (!($result['success'] ?? false)) {
