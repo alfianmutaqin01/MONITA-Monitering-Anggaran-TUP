@@ -1,92 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-    @if (session('warning'))
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <strong>Peringatan:</strong> {!! session('warning') !!}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
+    {{-- Notifikasi Error PHP standar (hanya untuk saat load awal jika ada error sistem) --}}
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <strong>Error:</strong> {!! session('error') !!}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
-
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <strong>Sukses:</strong> {!! session('success') !!}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if (session('info'))
-        <div class="alert alert-info alert-dismissible fade show" role="alert">
-            <strong>Info:</strong> {!! session('info') !!}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    {{-- Modal Konfirmasi Timpa Data --}}
-    <div class="modal fade" id="overrideModal" tabindex="-1" aria-labelledby="overrideModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-warning">
-                    <h5 class="modal-title text-dark" id="overrideModalLabel">
-                        <i class="ti ti-alert-triangle me-2"></i>Konfirmasi Penimpaan Data
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    @php
-                        $pendingData = session('pending_spreadsheet');
-                    @endphp
-
-                    @if($pendingData)
-                        <p class="mb-3">Tahun <strong>{{ $pendingData['year'] }}</strong> sudah memiliki data spreadsheet
-                            tersimpan.</p>
-
-                        <div class="alert alert-warning">
-                            <small>
-                                <strong>Data yang akan ditimpa:</strong><br>
-                                Tahun: {{ $pendingData['year'] }}<br>
-                                Link Baru: <code>{{ $pendingData['link'] }}</code>
-                            </small>
-                        </div>
-
-                        <p class="text-danger mb-0">
-                            <strong>Apakah Anda yakin ingin menimpa ID Spreadsheet untuk tahun ini?</strong>
-                        </p>
-                    @else
-                        <p>Data konfirmasi tidak tersedia.</p>
-                    @endif
-                </div>
-                <div class="modal-footer">
-                    <form action="{{ route('settings.update') }}" method="POST" class="d-inline">
-                        @csrf
-                        <input type="hidden" name="cancel_override" value="1">
-                        <button type="submit" class="btn btn-secondary">
-                            <i class="ti ti-x me-1"></i> Batal
-                        </button>
-                    </form>
-
-                    @if($pendingData)
-                        <form action="{{ route('settings.update') }}" method="POST" class="d-inline">
-                            @csrf
-                            <input type="hidden" name="confirm_override" value="1">
-                            <input type="hidden" name="override_year" value="{{ $pendingData['year'] }}">
-                            <input type="hidden" name="override_key" value="{{ $pendingData['key'] }}">
-                            <button type="submit" class="btn btn-warning">
-                                <i class="ti ti-check me-1"></i> Ya, Timpa Data
-                            </button>
-                        </form>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
 
     {{-- Card 1: Pengaturan Spreadsheet --}}
     <div class="card mb-4">
@@ -109,7 +30,6 @@
                             <i class="bi bi-clipboard"></i>
                         </button>
                     </li>
-
                     <li>Pastikan izin akses diset ke <strong>Editor</strong>.</li>
                     <li>Salin <strong>link</strong> spreadsheet tersebut, lalu tempelkan ke form di bawah.</li>
                 </ol>
@@ -117,20 +37,16 @@
 
             {{-- Form tambah atau ubah link spreadsheet --}}
             <h6 class="fw-bold mb-3">Tambah / Ubah Data Spreadsheet</h6>
-            <form action="{{ route('settings.update') }}" method="POST" id="form-spreadsheet"
-                class="mb-5 p-3 border rounded-3 bg-light">
-                @csrf
+            {{-- Hapus action/method, gunakan ID untuk JS --}}
+            <form id="form-spreadsheet" class="mb-5 p-3 border rounded-3 bg-light">
                 <div class="row align-items-end">
                     <div class="col-md-2">
                         <label class="form-label">Tahun Anggaran</label>
-                        <input type="number" name="year" id="input-year" class="form-control" placeholder="2026" min="2020"
-                            max="2030" required value="{{ old('year') }}">
+                        <input type="number" id="input-year" class="form-control" placeholder="2026" min="2020" max="2030" required>
                     </div>
                     <div class="col-md-8">
                         <label class="form-label">Link Google Sheet</label>
-                        <input type="url" name="sheet_link" id="input-sheet-link" class="form-control"
-                            placeholder="https://docs.google.com/spreadsheets/d/..." required
-                            value="{{ old('sheet_link') }}">
+                        <input type="url" id="input-sheet-link" class="form-control" placeholder="https://docs.google.com/spreadsheets/d/..." required>
                     </div>
                     <div class="col-md-2 text-end">
                         <button type="submit" class="btn btn-secondary w-100 mt-3 mt-md-0">
@@ -138,13 +54,6 @@
                         </button>
                     </div>
                 </div>
-
-                @error('year')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
-                @enderror
-                @error('sheet_link')
-                    <div class="text-danger small mt-1">{{ $message }}</div>
-                @enderror
             </form>
 
             {{-- Daftar Spreadsheet Tahun --}}
@@ -192,16 +101,14 @@
     </div>
 
     {{-- Card 2: Pengaturan Penanda Tangan (TTD) --}}
-    <div class="card">
+    <div class="card mb-4">
         <div class="card-header bg-secondary">
             <h5 class="mb-0 text-white">2. Pengaturan Data Penanda Tangan Laporan (TTD)</h5>
         </div>
         <div class="card-body">
             <p class="text-muted mb-4">Data ini akan digunakan untuk mencetak nama dan NIP pada footer laporan PDF.</p>
 
-            <form action="{{ route('settings.update') }}" method="POST" id="form-ttd">
-                @csrf
-
+            <form id="form-ttd">
                 <div class="row">
                     {{-- TTD Kolom 1 (Kiri) --}}
                     <div class="col-md-6 border-end pe-4">
@@ -244,29 +151,22 @@
                     </div>
                 </div>
 
-                {{-- Hidden inputs untuk data TTD --}}
-                <input type="hidden" name="ttd_jabatan_1_input" value="">
-                <input type="hidden" name="ttd_nama_1_input" value="">
-                <input type="hidden" name="ttd_nip_1_input" value="">
-                <input type="hidden" name="ttd_jabatan_2_input" value="">
-                <input type="hidden" name="ttd_nama_2_input" value="">
-                <input type="hidden" name="ttd_nip_2_input" value="">
-
                 <div class="text-end mt-4 pt-3 border-top">
-                    <button type="submit" class="btn btn-secondary px-4" id="btn-save-ttd">
+                    <button type="button" class="btn btn-secondary px-4" id="btn-save-ttd">
                         <i class="ti ti-save me-1"></i> Simpan Pengaturan TTD
                     </button>
                 </div>
             </form>
         </div>
     </div>
+
+    {{-- Card 3: Aktivitas Login --}}
     <div class="card mt-4">
         <div class="card-header bg-secondary">
-            <h5 class="mb-0 text-white">3. Aktivitas Login Pengguna</h5>
+             <h5 class="mb-0 text-white">3. Aktivitas Login Pengguna</h5>
         </div>
         <div class="card-body">
-
-            <table class="table table-bordered table-hover" id="login-activity-table">
+             <table class="table table-bordered table-hover" id="login-activity-table">
                 <thead class="bg-light">
                     <tr>
                         <th>Waktu</th>
@@ -296,208 +196,287 @@
                     @endforeach
                 </tbody>
             </table>
-
         </div>
     </div>
-
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.copy-btn').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const targetId = this.getAttribute('data-copy-target');
-                    const text = document.getElementById(targetId)?.innerText || '';
-
-                    if (!text) return;
-
-                    navigator.clipboard.writeText(text).then(() => {
-                        // Ganti icon sementara jadi centang
-                        this.innerHTML = '<i class="bi bi-check-lg text-success"></i>';
-                        this.title = "Tersalin!";
-                        setTimeout(() => {
-                            this.innerHTML = '<i class="bi bi-clipboard"></i>';
-                            this.title = "Salin ke Clipboard";
-                        }, 1500);
-                    }).catch(err => {
-                        console.error("Gagal menyalin:", err);
-                        alert("Gagal menyalin teks!");
-                    });
-                });
-            });
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    
+    // --- BAGIAN 1: SIMPAN / UPDATE SPREADSHEET (AJAX) ---
+    const formSheet = document.getElementById('form-spreadsheet');
+    
+    if(formSheet){
+        formSheet.addEventListener('submit', function(e) {
+            e.preventDefault(); // STOP RELOAD
+            
+            // Ambil data dari input
+            const year = document.getElementById('input-year').value;
+            const link = document.getElementById('input-sheet-link').value;
+            const btn = formSheet.querySelector('button[type="submit"]');
+            
+            sendSpreadsheetData(year, link, false, btn);
         });
-        document.addEventListener("DOMContentLoaded", function () {
-            const existingYears = @json($existingYears ?? []);
-            const activeYear = "{{ $activeYear ?? '' }}";
+    }
 
-            // Tampilkan modal konfirmasi jika diperlukan
-            @if(session('show_override_modal'))
-                const overrideModal = new bootstrap.Modal(document.getElementById('overrideModal'));
-                overrideModal.show();
-            @endif
+    function sendSpreadsheetData(year, link, confirmed = false, btnElement) {
+        // Loading State
+        const originalText = btnElement.innerHTML;
+        btnElement.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Proses...';
+        btnElement.disabled = true;
 
+        fetch("{{ route('settings.update') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                year: year,
+                sheet_link: link,
+                confirmed_override: confirmed ? '1' : '0'
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            btnElement.innerHTML = originalText;
+            btnElement.disabled = false;
 
-            // LOGIKA 1: KONFIRMASI AKTIVASI TAHUN (RADIO BUTTON)
+            if (data.success) {
+                // SUKSES
+                Swal.fire({
+                    title: "Berhasil!",
+                    text: data.message,
+                    icon: "success",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
 
-            document.querySelectorAll('.radio-active').forEach(radio => {
-                radio.addEventListener('change', function () {
-                    const year = this.dataset.year;
-                    const sheetKey = this.dataset.key;
+                // Update Tabel HTML secara Manual (Tanpa Reload)
+                updateTableDOM(data.data);
+                
+                // Reset Form
+                document.getElementById('input-year').value = '';
+                document.getElementById('input-sheet-link').value = '';
 
-                    // Jika memilih tahun yang sama dengan aktif, tidak perlu konfirmasi
-                    if (year === activeYear) {
-                        return;
+            } else if (data.needs_override) {
+                // KONFIRMASI TIMPA DATA (SweetAlert)
+                Swal.fire({
+                    title: "Tahun Sudah Ada",
+                    text: `Tahun ${data.year} sudah tersimpan. Apakah Anda ingin menimpanya dengan ID baru?`,
+                    icon: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#ffc107",
+                    cancelButtonColor: "#6c757d",
+                    confirmButtonText: "Ya, Timpa!",
+                    cancelButtonText: "Batal"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Panggil ulang fungsi dengan konfirmasi
+                        sendSpreadsheetData(year, link, true, btnElement);
                     }
-
-                    Swal.fire({
-                        title: "Konfirmasi Aktivasi Tahun",
-                        text: `Jadikan tahun ${year} sebagai tahun anggaran aktif?`,
-                        icon: "question",
-                        showCancelButton: true,
-                        confirmButtonText: "Ya, Aktifkan",
-                        cancelButtonText: "Batal",
-                        confirmButtonColor: "#0d6efd",
-                        cancelButtonColor: "#6c757d",
-                        customClass: { popup: 'rounded-3 shadow-lg' }
-                    }).then(result => {
-                        if (result.isConfirmed) {
-                            fetch("{{ route('settings.update') }}", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json",
-                                    "Accept": "application/json",
-                                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                                },
-                                body: JSON.stringify({
-                                    active_year: year,
-                                    spreadsheet_key: sheetKey
-                                })
-                            })
-                                .then(res => res.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        Swal.fire({
-                                            title: "Berhasil!",
-                                            text: data.message || "Tahun aktif telah diperbarui.",
-                                            icon: "success",
-                                            confirmButtonColor: "#28a745",
-                                            timer: 2000,
-                                            showConfirmButton: false
-                                        }).then(() => {
-                                            window.location.reload();
-                                        });
-                                    } else {
-                                        Swal.fire("Gagal", data.message || "Terjadi kesalahan.", "error");
-                                        // Kembalikan ke radio sebelumnya
-                                        document.querySelector(`.radio-active[data-year="${activeYear}"]`).checked = true;
-                                    }
-                                })
-                                .catch(err => {
-                                    console.error(err);
-                                    Swal.fire("Error", "Tidak dapat terhubung ke server.", "error");
-                                    document.querySelector(`.radio-active[data-year="${activeYear}"]`).checked = true;
-                                });
-                        } else {
-                            // Kembalikan ke radio tahun aktif sebelumnya
-                            this.checked = false;
-                            document.querySelector(`.radio-active[data-year="${activeYear}"]`).checked = true;
-                        }
-                    });
-                });
-            });
-
-
-            // LOGIKA 2: DETEKSI DUPLIKASI TAHUN PADA FORM SUBMIT
-
-            document.getElementById('form-spreadsheet').addEventListener('submit', function (e) {
-                const yearInput = document.getElementById('input-year').value.trim();
-
-                // Deteksi jika tahun sudah ada
-                if (existingYears.includes(yearInput)) {
-                    e.preventDefault();
-
-                    Swal.fire({
-                        title: "Tahun Sudah Ada",
-                        text: `Tahun ${yearInput} sudah memiliki data spreadsheet. Anda akan menimpa data yang ada.`,
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "Ya, Timpa Data",
-                        cancelButtonText: "Batal",
-                        confirmButtonColor: "#dc3545",
-                        customClass: { popup: 'rounded-3 shadow-lg' }
-                    }).then(result => {
-                        if (result.isConfirmed) {
-                            // Tambahkan parameter konfirmasi dan submit form
-                            const confirmInput = document.createElement('input');
-                            confirmInput.type = 'hidden';
-                            confirmInput.name = 'confirmed_override';
-                            confirmInput.value = '1';
-                            e.target.appendChild(confirmInput);
-                            e.target.submit();
-                        }
-                    });
-                }
-            });
-
-
-            // LOGIKA 3: SIMPAN DATA TTD
-
-            document.getElementById('form-ttd').addEventListener('submit', function (e) {
-                e.preventDefault(); //BARU: Mencegah submit form standar (penting)
-
-                // Transfer nilai dari input visible ke hidden inputs
-                const mappings = [
-                    ['jabatan_1', 'ttd_jabatan_1_input'],
-                    ['nama_1', 'ttd_nama_1_input'],
-                    ['nip_1', 'ttd_nip_1_input'],
-                    ['jabatan_2', 'ttd_jabatan_2_input'],
-                    ['nama_2', 'ttd_nama_2_input'],
-                    ['nip_2', 'ttd_nip_2_input']
-                ];
-
-                mappings.forEach(([visibleId, hiddenName]) => {
-                    const visibleValue = document.getElementById(visibleId)?.value || '';
-                    document.querySelector(`input[name="${hiddenName}"]`).value = visibleValue;
                 });
 
-                const formData = new FormData(this); // Mengambil data form yang sudah di-update hidden inputnya
-
-                fetch("{{ route('settings.update') }}", {
-                    method: 'POST',
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
-                        "Accept": "application/json" // Minta JSON response
-                    },
-                    body: formData
-                })
-                    .then(r => {
-                        if (!r.ok) {
-                            // Handle error response (termasuk validasi 422)
-                            return r.json().then(data => Promise.reject(data.message || 'Gagal menyimpan TTD.'));
-                        }
-                        return r.json();
-                    })
-                    .then(j => {
-                        // Jika sukses, tampilkan SweetAlert dan reload
-                        Swal.fire({
-                            title: "Berhasil!",
-                            text: j.message || "Pengaturan TTD berhasil disimpan.",
-                            icon: "success",
-                            confirmButtonColor: "#28a745",
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.reload(); // Memaksa reload halaman
-                        });
-                    })
-                    .catch(error => {
-                        Swal.fire("Error", error.toString(), "error");
-                    });
-            });
-
-
+            } else {
+                Swal.fire("Gagal", data.message, "error");
+            }
+        })
+        .catch(err => {
+            btnElement.innerHTML = originalText;
+            btnElement.disabled = false;
+            console.error(err);
+            Swal.fire("Error", "Terjadi kesalahan server.", "error");
         });
-    </script>
+    }
+
+    function updateTableDOM(data) {
+        const tableBody = document.querySelector('#spreadsheet-table tbody');
+        const rows = tableBody.querySelectorAll('tr');
+        let found = false;
+
+        // Cek update baris yang ada
+        rows.forEach(row => {
+            if (row.dataset.year == data.year) {
+                row.cells[2].innerHTML = `<code class="text-dark">${data.key}</code>`;
+                row.cells[3].querySelector('a').href = data.link;
+                
+                const radio = row.querySelector('.radio-active');
+                if(radio) radio.dataset.key = data.key;
+                
+                row.classList.add('table-warning');
+                setTimeout(() => row.classList.remove('table-warning'), 2000);
+                found = true;
+            }
+        });
+
+        // Tambah baris baru jika belum ada
+        if (!found) {
+            const emptyRow = tableBody.querySelector('td[colspan="4"]');
+            if (emptyRow) emptyRow.parentElement.remove();
+
+            const newRow = `
+                <tr data-year="${data.year}">
+                    <td class="text-center">
+                        <div class="form-check d-flex justify-content-center">
+                            <input type="radio" name="active_year" class="form-check-input radio-active" 
+                                data-year="${data.year}" data-key="${data.key}">
+                        </div>
+                    </td>
+                    <td class="text-dark">${data.year}</td>
+                    <td><code class="text-dark">${data.key}</code></td>
+                    <td>
+                        <a href="${data.link}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                            Lihat Spreadsheet <i class="ti ti-external-link ms-1"></i>
+                        </a>
+                    </td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', newRow);
+        }
+    }
+
+
+    // --- BAGIAN 2: SIMPAN TTD (AJAX) ---
+    const btnSaveTTD = document.getElementById('btn-save-ttd');
+    
+    if(btnSaveTTD){
+        btnSaveTTD.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const payload = {
+                ttd_jabatan_1: document.getElementById('jabatan_1').value,
+                ttd_nama_1: document.getElementById('nama_1').value,
+                ttd_nip_1: document.getElementById('nip_1').value,
+                ttd_jabatan_2: document.getElementById('jabatan_2').value,
+                ttd_nama_2: document.getElementById('nama_2').value,
+                ttd_nip_2: document.getElementById('nip_2').value,
+            };
+
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan...';
+            this.disabled = true;
+
+            fetch("{{ route('settings.update') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+                
+                if (data.success) {
+                    Swal.fire({
+                        title: "Tersimpan!",
+                        text: data.message,
+                        icon: "success",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                } else {
+                    Swal.fire("Gagal", data.message, "error");
+                }
+            })
+            .catch(err => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+                Swal.fire("Error", "Gagal menghubungi server", "error");
+            });
+        });
+    }
+
+
+    // --- BAGIAN 3: AKTIVASI TAHUN (AJAX - TANPA RELOAD) ---
+    // Event Delegation
+    const tableElement = document.getElementById('spreadsheet-table');
+    if(tableElement){
+        tableElement.addEventListener('change', function(e) {
+            if (e.target && e.target.classList.contains('radio-active')) {
+                const radio = e.target;
+                const year = radio.dataset.year;
+                const sheetKey = radio.dataset.key;
+                
+                Swal.fire({
+                    title: "Ganti Tahun Aktif?",
+                    text: `Aktifkan tahun anggaran ${year}?`,
+                    icon: "question",
+                    showCancelButton: true,
+                    confirmButtonText: "Ya, Aktifkan",
+                    cancelButtonText: "Batal"
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        fetch("{{ route('settings.update') }}", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json",
+                                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                            },
+                            body: JSON.stringify({ active_year: year, spreadsheet_key: sheetKey })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: "Sukses", 
+                                    text: data.message, 
+                                    icon: "success", 
+                                    timer: 1500, 
+                                    showConfirmButton: false
+                                });
+
+                                // --- LOGIC VISUAL UPDATE (PENTING: MENGGANTIKAN RELOAD) ---
+                                // 1. Hapus style aktif dari semua baris
+                                document.querySelectorAll('#spreadsheet-table tr').forEach(tr => {
+                                    tr.classList.remove('table-primary', 'fw-bold');
+                                });
+                                // 2. Tambahkan style aktif ke baris yang dipilih
+                                radio.closest('tr').classList.add('table-primary', 'fw-bold');
+                                // ---------------------------------------------------------
+
+                            } else {
+                                Swal.fire("Gagal", data.message, "error");
+                                e.target.checked = false; // Reset radio jika gagal
+                            }
+                        })
+                        .catch(err => {
+                             console.error(err);
+                             Swal.fire("Error", "Gagal koneksi server", "error");
+                             e.target.checked = false;
+                        });
+                    } else {
+                        // User membatalkan di SweetAlert
+                        e.target.checked = false; 
+                        // Opsi tambahan: Centang kembali radio button tahun yang sebelumnya aktif (jika perlu logika kompleks)
+                        // Untuk sekarang, uncheck cukup menandakan batal.
+                    }
+                });
+            }
+        });
+    }
+
+    // --- BAGIAN 4: COPY TEXT HELPER ---
+    document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const targetId = this.getAttribute('data-copy-target');
+            const text = document.getElementById(targetId)?.innerText || '';
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-check-lg text-success"></i>';
+                setTimeout(() => { this.innerHTML = originalHtml; }, 1500);
+            });
+        });
+    });
+
+});
+</script>
 @endpush

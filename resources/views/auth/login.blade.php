@@ -197,7 +197,7 @@
                 <!-- Right Form Section -->
                 <div class="col-lg-6 p-4 p-md-5 d-flex flex-column justify-content-center bg-white">
                     <div class="text-center mb-4">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo Telkom University" class="brand-logo">
+                        <img src="{{ asset('images/icon.png') }}" alt="Logo Telkom University" class="brand-logo" style="width: 20%">
                         <h2 class="auth-header mb-1">Selamat Datang</h2>
                         <p class="text-muted mb-4">Masukkan akun Anda untuk melanjutkan</p>
                     </div>

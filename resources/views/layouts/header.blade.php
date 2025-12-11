@@ -2,11 +2,21 @@
     <div class="header-wrapper">
         <div class="me-auto pc-mob-drp d-flex align-items-center">
             <ul class="list-unstyled d-flex mb-0">
-                <li class="pc-h-item">
+
+                {{-- 1. TOMBOL DESKTOP (Hanya muncul di layar Medium ke atas) --}}
+                <li class="pc-h-item d-none d-md-inline-flex">
                     <a href="#" class="pc-head-link head-link-secondary ms-0" id="sidebar-hide">
                         <i class="ti ti-menu-2"></i>
                     </a>
                 </li>
+
+                {{-- 2. TOMBOL MOBILE (Hanya muncul di layar Kecil/HP) --}}
+                <li class="pc-h-item d-inline-flex d-md-none">
+                    <a href="#" class="pc-head-link head-link-secondary ms-0" id="mobile-collapse">
+                        <i class="ti ti-menu-2"></i>
+                    </a>
+                </li>
+
             </ul>
 
             <!-- Greeting -->

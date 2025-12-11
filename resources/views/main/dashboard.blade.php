@@ -153,7 +153,7 @@
             const chartConfigs = [
                 { id: "#chart-serapan", title: "Serapan kegiatan Unit(%)", data: dataSerapan },
                 { id: "#chart-rka", title: "Serapan RKA Operasi (%)", data: dataRka }, // Mengganti nama chart agar lebih jelas
-                { id: "#chart-operasional", title: "Real Operasional Unit (%)", data: dataOperasional },
+                { id: "#chart-operasional", title: "Serapan BANG per Unit (%)", data: dataOperasional },
             ];
 
             document.dispatchEvent(new Event('monita:loading:start'));

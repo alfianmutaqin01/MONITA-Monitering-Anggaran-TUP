@@ -129,175 +129,102 @@ class SettingsController extends Controller
     }
 
     public function update(Request $request)
-    {
-        try {
-            $envContent = $this->getEnvContent();
-        } catch (Exception $e) {
-            if ($request->isJson()) {
-                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-            }
-            return redirect()->route('settings.index')->with('error', $e->getMessage());
+{
+    // Pastikan respon selalu JSON jika diminta
+    if (!$request->wantsJson() && !$request->isJson()) {
+        return redirect()->route('settings.index'); 
+    }
+
+    try {
+        $envContent = $this->getEnvContent();
+    } catch (Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+
+    // --- MODE 1: TAMBAH/UPDATE SPREADSHEET ---
+    if ($request->has('sheet_link') && $request->has('year')) {
+        $validator = \Validator::make($request->all(), [
+            'year' => 'required|numeric|digits:4|min:2020|max:2030',
+            'sheet_link' => 'required|url',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['success' => false, 'message' => $validator->errors()->first()], 422);
         }
+        
+        $link = trim($request->input('sheet_link'));
+        $year = trim($request->input('year'));
 
-        // --- MODE 1: TAMBAH/UBAH SPREADSHEET BARU ---
-        if ($request->filled('sheet_link') && $request->filled('year')) {
-            $request->validate([
-                'year' => 'required|numeric|digits:4|min:2020|max:2030',
-                'sheet_link' => 'required|url',
+        // Ekstrak ID dari URL
+        if (!preg_match('/https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/', $link, $m)) {
+            return response()->json(['success' => false, 'message' => 'Link tidak valid. Harus mengandung /spreadsheets/d/ID'], 400);
+        }
+        $key = $m[1];
+        
+        $envVar = "GOOGLE_SPREADSHEET_ID_YEAR_{$year}";
+        
+        // Cek apakah tahun sudah ada
+        $existingYears = $this->getExistingYears($envContent);
+        $isYearExists = in_array($year, $existingYears);
+        
+        // JIKA TAHUN ADA DAN BELUM DIKONFIRMASI (confirmed_override dikirim dari JS)
+        if ($isYearExists && $request->input('confirmed_override') != '1') {
+            return response()->json([
+                'success' => false, 
+                'needs_override' => true, // Flag untuk JS memunculkan SweetAlert
+                'message' => "Tahun {$year} sudah ada. Timpa data?",
+                'year' => $year,
+                'key' => $key // Kirim key baru untuk preview
             ]);
+        }
+        
+        // Simpan Data
+        $envContent = $this->setEnvValue($envVar, $key, $envContent);
+        
+        try {
+            File::put(base_path('.env'), $envContent);
             
-            $link = trim($request->input('sheet_link'));
-            $year = trim($request->input('year'));
-
-            // Ekstrak key dari URL
-            $pattern = '/https:\/\/docs\.google\.com\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/';
-            if (!preg_match($pattern, $link, $m)) {
-                return redirect()
-                    ->route('settings.index')
-                    ->with('error', 'Format link Google Sheet tidak valid. Pastikan link mengandung /spreadsheets/d/<ID>.')
-                    ->withInput();
-            }
-            $key = $m[1];
-            
-            $envVar = "GOOGLE_SPREADSHEET_ID_YEAR_{$year}";
-            
-            // Cek apakah tahun sudah ada
-            $existingYears = $this->getExistingYears($envContent);
-            $isYearExists = in_array($year, $existingYears);
-            
-            // Jika tahun sudah ada, simpan data sementara di session untuk konfirmasi
-            if ($isYearExists && !$request->has('confirmed_override')) {
-                $request->session()->put('pending_spreadsheet', [
+            return response()->json([
+                'success' => true, 
+                'message' => "Spreadsheet tahun {$year} berhasil disimpan.",
+                'data' => [
                     'year' => $year,
                     'key' => $key,
-                    'link' => $link
-                ]);
-                
-                return redirect()
-                    ->route('settings.index')
-                    ->with('warning', "Tahun {$year} sudah ada. Apakah Anda yakin ingin menimpa ID Spreadsheet?")
-                    ->with('show_override_modal', true);
-            }
-            
-            // Jika konfirmasi diterima atau tahun baru, simpan data
-            $envContent = $this->setEnvValue($envVar, $key, $envContent);
-            
-            try {
-                File::put(base_path('.env'), $envContent);
-                
-                // Hapus data pending dari session
-                $request->session()->forget('pending_spreadsheet');
-                
-                $message = $isYearExists 
-                    ? "Spreadsheet tahun {$year} berhasil diupdate." 
-                    : "Spreadsheet tahun {$year} berhasil disimpan.";
-                    
-                return redirect()
-                    ->route('settings.index')
-                    ->with('success', $message);
-            } catch (Exception $e) {
-                return redirect()
-                    ->route('settings.index')
-                    ->with('error', "Gagal menyimpan ke file .env: " . $e->getMessage());
-            }
-        }
-        
-        // --- MODE 2: KONFIRMASI TIMPA DATA (Form khusus untuk konfirmasi) ---
-        if ($request->filled('confirm_override') && $request->filled('override_year')) {
-            $year = $request->input('override_year');
-            $key = $request->input('override_key');
-            
-            $envVar = "GOOGLE_SPREADSHEET_ID_YEAR_{$year}";
-            $envContent = $this->setEnvValue($envVar, $key, $envContent);
-            
-            try {
-                File::put(base_path('.env'), $envContent);
-                $request->session()->forget('pending_spreadsheet');
-                
-                return redirect()
-                    ->route('settings.index')
-                    ->with('success', "Spreadsheet tahun {$year} berhasil diupdate.");
-            } catch (Exception $e) {
-                return redirect()
-                    ->route('settings.index')
-                    ->with('error', "Gagal mengupdate spreadsheet: " . $e->getMessage());
-            }
-        }
-        
-        // --- MODE 3: BATAL TIMPA DATA ---
-        if ($request->filled('cancel_override')) {
-            $request->session()->forget('pending_spreadsheet');
-            return redirect()
-                ->route('settings.index')
-                ->with('info', 'Proses penimpaan spreadsheet dibatalkan.');
-        }
-        
-        // --- MODE 4: AKTIVASI TAHUN TERTENTU (AJAX) ---
-        if ($request->isJson() && $request->has('active_year')) {
-            $year = $request->json('active_year');
-            $key = $request->json('spreadsheet_key');
-            
-            if (!$year || !$key) {
-                return response()->json([
-                    'success' => false, 
-                    'message' => 'Data tahun atau kunci spreadsheet tidak lengkap.'
-                ], 400);
-            }
-            
-            // Update ACTIVE_YEAR dan GOOGLE_SPREADSHEET_ID
-            $envContent = $this->setEnvValue('ACTIVE_YEAR', $year, $envContent);
-            $envContent = $this->setEnvValue('GOOGLE_SPREADSHEET_ID', $key, $envContent);
-
-            try {
-                File::put(base_path('.env'), $envContent);
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Tahun aktif berhasil diperbarui.'
-                ]);
-            } catch (Exception $e) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Gagal menyimpan pengaturan: ' . $e->getMessage()
-                ], 500);
-            }
-        }
-        
-        // --- MODE 5: UPDATE DATA PENANDA TANGAN (TTD) ---
-        if ($request->isMethod('post') && $request->has('ttd_jabatan_1_input')) {
-            $request->validate([
-                'ttd_jabatan_1_input' => 'nullable|string|max:100',
-                'ttd_nama_1_input' => 'nullable|string|max:100',
-                'ttd_nip_1_input' => 'nullable|string|max:50',
-                'ttd_jabatan_2_input' => 'nullable|string|max:100',
-                'ttd_nama_2_input' => 'nullable|string|max:100',
-                'ttd_nip_2_input' => 'nullable|string|max:50',
+                    'link' => "https://docs.google.com/spreadsheets/d/{$key}"
+                ]
             ]);
+        } catch (Exception $e) {
+            return response()->json(['success' => false, 'message' => "Gagal tulis .env: " . $e->getMessage()], 500);
+        }
+    }
 
-            // Update semua variabel TTD
-            $envContent = $this->setEnvValue('TTD_JABATAN_1', $request->ttd_jabatan_1_input, $envContent);
-            $envContent = $this->setEnvValue('TTD_NAMA_1', $request->ttd_nama_1_input, $envContent);
-            $envContent = $this->setEnvValue('TTD_NIP_1', $request->ttd_nip_1_input, $envContent);
-            $envContent = $this->setEnvValue('TTD_JABATAN_2', $request->ttd_jabatan_2_input, $envContent);
-            $envContent = $this->setEnvValue('TTD_NAMA_2', $request->ttd_nama_2_input, $envContent);
-            $envContent = $this->setEnvValue('TTD_NIP_2', $request->ttd_nip_2_input, $envContent);
-            
-            try {
-        File::put(base_path('.env'), $envContent);
+    // --- MODE 2: AKTIVASI TAHUN (Sudah AJAX di kode lama, kita rapikan) ---
+    if ($request->has('active_year')) {
+        $year = $request->input('active_year');
+        $key = $request->input('spreadsheet_key');
         
-        if ($request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Data Penanda Tangan berhasil diperbarui.']);
-        }
-        return redirect()->route('settings.index')->with('success', 'Data Penanda Tangan berhasil diperbarui.');
-    } catch (Exception $e) {
-        if ($request->wantsJson()) {
-             return response()->json(['success' => false, 'message' => 'Gagal menyimpan data TTD: ' . $e->getMessage()], 500);
-        }
-        return redirect()->route('settings.index')->with('error', 'Gagal menyimpan data TTD: ' . $e->getMessage());
-    }
-        }
+        $envContent = $this->setEnvValue('ACTIVE_YEAR', $year, $envContent);
+        $envContent = $this->setEnvValue('GOOGLE_SPREADSHEET_ID', $key, $envContent); // Opsional jika app pakai ini
 
-        return redirect()
-            ->route('settings.index')
-            ->with('error', 'Permintaan tidak dikenali.');
+        File::put(base_path('.env'), $envContent);
+        return response()->json(['success' => true, 'message' => "Tahun aktif diubah ke {$year}."]);
     }
-}
+    
+    // --- MODE 3: UPDATE TTD (Data Penanda Tangan) ---
+    // Kita cek input dari JS (mapping nama field disesuaikan di JS nanti)
+    if ($request->has('ttd_jabatan_1')) {
+        $fields = ['ttd_jabatan_1', 'ttd_nama_1', 'ttd_nip_1', 'ttd_jabatan_2', 'ttd_nama_2', 'ttd_nip_2'];
+        
+        foreach ($fields as $field) {
+            // Ubah key request (lowercase) menjadi key ENV (UPPERCASE)
+            $envKey = strtoupper($field); 
+            $value = $request->input($field, '');
+            $envContent = $this->setEnvValue($envKey, $value, $envContent);
+        }
+        
+        File::put(base_path('.env'), $envContent);
+        return response()->json(['success' => true, 'message' => 'Data TTD berhasil diperbarui.']);
+    }
+
+    return response()->json(['success' => false, 'message' => 'Request tidak dikenali.'], 400);
+}}
