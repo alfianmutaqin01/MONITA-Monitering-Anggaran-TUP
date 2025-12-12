@@ -4,7 +4,7 @@
         <!-- Logo -->
         <div class="m-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);">
             <a href="{{ route('dashboard') }}" class="b-brand text-primary d-block text-center">
-                <img src="{{ asset('images/Logo.png') }}" alt="Logo Telkom University" class="img-fluid"
+                <img src="{{ asset('images/logo.png') }}" alt="Logo Telkom University" class="img-fluid"
                     style="max-width: 35%; height: auto; display: block; margin: 0 auto;">
             </a>
         </div>

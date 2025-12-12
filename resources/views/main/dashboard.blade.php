@@ -151,9 +151,9 @@
             const chartWidth = Math.max(1000, labels.length * 40);
 
             const chartConfigs = [
-                { id: "#chart-serapan", title: "Serapan kegiatan Unit(%)", data: dataSerapan },
-                { id: "#chart-rka", title: "Serapan RKA Operasi (%)", data: dataRka }, // Mengganti nama chart agar lebih jelas
-                { id: "#chart-operasional", title: "Serapan BANG per Unit (%)", data: dataOperasional },
+                { id: "#chart-serapan", title: "Realisasi Proker / RKM Unit(%)", data: dataSerapan },
+                { id: "#chart-rka", title: "Realisasi RKA Operasi (%)", data: dataRka }, // Mengganti nama chart agar lebih jelas
+                { id: "#chart-operasional", title: "Realisasi RKA BANG (%)", data: dataOperasional },
             ];
 
             document.dispatchEvent(new Event('monita:loading:start'));
