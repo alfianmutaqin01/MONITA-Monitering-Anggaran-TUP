@@ -14,7 +14,11 @@ class DashboardController extends Controller
 
     public function __construct()
     {
-        $this->spreadsheetId = env('GOOGLE_SPREADSHEET_ID');
+        $activeYear = env('ACTIVE_YEAR', date('Y')); 
+
+        $yearSpecificId = env('GOOGLE_SPREADSHEET_ID_YEAR_' . $activeYear);
+
+        $this->spreadsheetId = $yearSpecificId ?: env('GOOGLE_SPREADSHEET_ID');
     }
 
     private function getGoogleSheetService()
