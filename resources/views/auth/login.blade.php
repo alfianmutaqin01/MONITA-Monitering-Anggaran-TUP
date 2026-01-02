@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="id">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
@@ -66,9 +65,7 @@
         }
 
         @keyframes glowPulse {
-
-            0%,
-            100% {
+            0%, 100% {
                 opacity: 0.05;
                 filter: drop-shadow(0 0 5px rgba(149, 25, 35, 0.2));
             }
@@ -148,6 +145,11 @@
             color: var(--primary);
         }
 
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
         .form-floating>label {
             color: #666;
         }
@@ -212,26 +214,26 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('login.attempt') }}">
+                    <form method="POST" action="{{ route('login.attempt') }}" id="loginForm">
                         @csrf
                         <div class="form-floating mb-3">
                             <input type="text" class="form-control" id="username" name="username" placeholder="Username"
-                                required>
+                                   required>
                             <label for="username"><i class="ti ti-user me-1"></i> Username</label>
                         </div>
 
                         <div class="form-floating mb-4 position-relative">
                             <input type="password" class="form-control pe-5" id="password" name="password"
-                                placeholder="Password" required>
+                                   placeholder="Password" required>
                             <label for="password"><i class="ti ti-lock me-1"></i> Password</label>
                             <button type="button"
-                                class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-3 bg-transparent border-0 text-muted"
-                                onclick="togglePassword()" style="z-index: 10;">
+                                    class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-3 bg-transparent border-0 text-muted"
+                                    onclick="togglePassword()" style="z-index: 10;">
                                 <i class="ti ti-eye-off" id="eyeIcon"></i>
                             </button>
                         </div>
 
-                        <button type="submit" class="btn btn-login w-100">
+                        <button type="submit" class="btn btn-login w-100" id="loginBtn">
                             <i class="ti ti-login me-1"></i> Masuk ke MONITA
                         </button>
                     </form>
@@ -246,8 +248,13 @@
 
     <script src="{{ asset('berry/assets/js/plugins/bootstrap.min.js') }}"></script>
     <script src="{{ asset('berry/assets/js/plugins/feather.min.js') }}"></script>
+    
+    <!-- Loading Overlay Script -->
+    <script src="{{ asset('js/monita/loading.js') }}"></script>
+    
     <script>
         feather.replace();
+        
         function togglePassword() {
             const password = document.getElementById('password');
             const eyeIcon = document.getElementById('eyeIcon');
@@ -263,7 +270,105 @@
             }
             feather.replace();
         }
+
+        // ========== LOADING HANDLER untuk LOGIN ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.getElementById('loginForm');
+            const loginBtn = document.getElementById('loginBtn');
+            
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    // Validasi form
+                    const username = document.getElementById('username').value.trim();
+                    const password = document.getElementById('password').value.trim();
+                    
+                    if (!username || !password) {
+                        return; // Biarkan validasi default
+                    }
+                    
+                    // Tampilkan loading
+                    if (window.monitaLoader) {
+                        window.monitaLoader.show();
+                    } else {
+                        // Fallback loading sederhana jika monitaLoader belum ada
+                        showSimpleLoading();
+                    }
+                    
+                    // Nonaktifkan tombol submit
+                    if (loginBtn) {
+                        loginBtn.disabled = true;
+                        loginBtn.innerHTML = '<i class="ti ti-login me-1"></i> Memproses...';
+                    }
+                });
+            }
+        });
+        
+        // Fallback loading sederhana
+        function showSimpleLoading() {
+            const overlay = document.createElement('div');
+            overlay.id = 'login-loading-overlay';
+            overlay.innerHTML = `
+                <div style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.9);
+                    z-index: 9999;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    backdrop-filter: blur(3px);
+                ">
+                    <div style="text-align: center;">
+                        <div style="
+                            width: 56px;
+                            height: 56px;
+                            border: 5px solid #e0e0e0;
+                            border-top-color: #a31d1d;
+                            border-radius: 50%;
+                            animation: spin 0.9s ease-in-out infinite;
+                            margin: 0 auto;
+                        "></div>
+                        <p class="mt-3 fw-semibold" style="color: #333;">Mengecek login, harap tunggu...</p>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            
+            // Tambahkan style untuk animasi
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes spin { 
+                    from { transform: rotate(0deg); } 
+                    to { transform: rotate(360deg); } 
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // Cleanup jika user kembali ke halaman login
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                // Halaman dimuat dari cache, reset form dan loading
+                const loginBtn = document.getElementById('loginBtn');
+                if (loginBtn) {
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="ti ti-login me-1"></i> Masuk ke MONITA';
+                }
+                
+                // Hapus loading overlay jika ada
+                const existingOverlay = document.getElementById('login-loading-overlay');
+                if (existingOverlay) {
+                    existingOverlay.remove();
+                }
+                
+                if (window.monitaLoader) {
+                    window.monitaLoader.hide();
+                }
+            }
+        });
     </script>
 </body>
-
 </html>

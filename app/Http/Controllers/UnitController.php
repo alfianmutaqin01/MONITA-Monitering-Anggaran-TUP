@@ -85,7 +85,7 @@ class UnitController extends Controller
 
         $sheetName = "RAW Data TW " . $this->toRoman($currentTw);
         $startRow = 2;
-        $endRow = 700;
+        $endRow = 3000;
         $range = "{$sheetName}!B{$startRow}:J{$endRow}";
 
         try {

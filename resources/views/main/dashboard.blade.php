@@ -146,13 +146,11 @@
 
             const maxVal = arr => Math.ceil(Math.max(...arr, 100) / 10) * 10;
 
-            // PERBAIKAN: Tentukan lebar chart yang lebih lebar dari container normal (misal 1000px)
-            // Ini akan memaksa div wrapper yang responsive (table-responsive) untuk scroll.
             const chartWidth = Math.max(1000, labels.length * 40);
 
             const chartConfigs = [
                 { id: "#chart-serapan", title: "Realisasi Proker / RKM Unit(%)", data: dataSerapan },
-                { id: "#chart-rka", title: "Realisasi RKA Operasi (%)", data: dataRka }, // Mengganti nama chart agar lebih jelas
+                { id: "#chart-rka", title: "Realisasi RKA Operasi (%)", data: dataRka }, 
                 { id: "#chart-operasional", title: "Realisasi RKA BANG (%)", data: dataOperasional },
             ];
 
@@ -161,14 +159,13 @@
             chartConfigs.forEach(cfg => {
                 const element = document.querySelector(cfg.id);
 
-                // Atur lebar div chart di sini, agar bisa discroll
                 element.style.width = `${chartWidth}px`;
 
                 const options = {
                     chart: {
                         type: "bar",
                         height: 320,
-                        width: chartWidth, // Terapkan lebar yang dihitung ke opsi chart
+                        width: chartWidth, 
                         toolbar: { show: false }
                     },
                     series: [{ name: cfg.title, data: cfg.data }],
@@ -207,13 +204,11 @@
             margin-right: 4px;
         }
 
-        /* CSS Tambahan untuk memastikan chart container memiliki scroll bar saat lebar */
         .chart-container-wrapper {
             width: 100%;
             overflow-x: auto;
             overflow-y: hidden;
             padding-bottom: 20px;
-            /* Ruang untuk scrollbar horizontal */
         }
     </style>
 @endsection
