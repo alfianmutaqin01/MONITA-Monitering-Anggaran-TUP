@@ -170,7 +170,9 @@
         }
     </style>
 </head>
-
+@if(config('services.recaptcha.enabled'))
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+@endif
 <body>
     <!-- ===== Background Animated Logos ===== -->
     <div class="bg-animated">
@@ -232,7 +234,11 @@
                                 <i class="ti ti-eye-off" id="eyeIcon"></i>
                             </button>
                         </div>
-
+                        @if(config('services.recaptcha.enabled'))
+                            <div class="mb-3 d-flex justify-content-center">
+                                <div class="g-recaptcha" data-sitekey="{{ config('services.recaptcha.site_key') }}"></div>
+                            </div>
+                        @endif
                         <button type="submit" class="btn btn-login w-100" id="loginBtn">
                             <i class="ti ti-login me-1"></i> Masuk ke MONITA
                         </button>

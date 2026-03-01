@@ -47,7 +47,13 @@ class LaporanController extends Controller
         $range = "{$sheetName}!A2:J700";
 
         try {
-            $response = $service->spreadsheets_values->get($this->spreadsheetId, $range);
+            $response = $service->spreadsheets_values->get(
+    $this->spreadsheetId,
+    $range,
+    [
+        'valueRenderOption' => 'UNFORMATTED_VALUE'
+    ]
+);
             $values = $response->getValues() ?? [];
 
         } catch (Exception $e) {
