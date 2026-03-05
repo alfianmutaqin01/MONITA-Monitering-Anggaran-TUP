@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\PengajuanController;
 
 // Redirect root ke login
 Route::get('/', function () {
@@ -23,6 +24,24 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Protected routes (pastikan middleware 'auth.spreadsheet' sudah terdaftar di Kernel)
 Route::middleware(['auth.spreadsheet'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::prefix('pengajuan')->group(function () {
+
+    Route::get('/daftar', function () {
+        return view('main.pengajuan.daftar');
+    })->name('pengajuan.daftar');
+
+    Route::get('/buat', function () {
+        return view('main.pengajuan.buat', [
+            'activeTw' => 1
+        ]);
+    })->name('pengajuan.buat');
+
+    Route::get('/riwayat', function () {
+        return view('main.pengajuan.riwayat');
+    })->name('pengajuan.riwayat');
+
+});
 
     Route::get('/unit/{kode}', [UnitController::class, 'show'])->name('unit.show');
     Route::get('/summary/triwulan/{tw}', [SummaryController::class, 'index'])
@@ -48,6 +67,6 @@ Route::middleware(['auth.spreadsheet'])->group(function () {
     Route::get('/laporan-triwulan/{tw}', [ExportController::class, 'laporanTriwulan'])->name('export.laporan-triwulan');
     Route::get('/summary/{tw}/{type}', [ExportController::class, 'summary'])->name('export.summary');
     Route::get('/unit/{kode}', [ExportController::class, 'detailUnit'])->name('export.unit');
-});
+    });
 
 });

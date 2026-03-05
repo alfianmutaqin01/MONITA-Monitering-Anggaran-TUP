@@ -29,6 +29,42 @@
                     <label>Anggaran</label>
                     <i class="ti ti-building"></i>
                 </li>
+
+                <!-- Pengajuan Anggaran -->
+                <li class="pc-item pc-hasmenu">
+                    <a href="#!" class="pc-link">
+                        <span class="pc-micon"><i class="bi bi-bank"></i></span>
+                        <span class="pc-mtext">Pengajuan Anggaran</span>
+                        <span class="pc-arrow"><i data-feather="chevron-right"></i></span>
+                    </a>
+                    <ul class="pc-submenu">
+
+                        @if($userRole === 'admin')
+                            <li class="pc-item">
+                                <a class="pc-link {{ request()->routeIs('pengajuan.daftar') ? 'active' : '' }}"
+                                    href="{{ route('pengajuan.daftar') }}">
+                                    Daftar Ajuan
+                                </a>
+                            </li>
+                        @endif
+
+                        <li class="pc-item">
+                            <a class="pc-link {{ request()->routeIs('pengajuan.buat') ? 'active' : '' }}"
+                                href="{{ route('pengajuan.buat') }}">
+                                Ajukan Anggaran
+                            </a>
+                        </li>
+
+                        <li class="pc-item">
+                            <a class="pc-link {{ request()->routeIs('pengajuan.riwayat') ? 'active' : '' }}"
+                                href="{{ route('pengajuan.riwayat') }}">
+                                Riwayat Pengajuan
+                            </a>
+                        </li>
+
+                    </ul>
+                </li>
+
                 <li class="pc-item pc-hasmenu">
                     <a href="#!" class="pc-link">
                         <span class="pc-micon"><i class="ti ti-building"></i></span>

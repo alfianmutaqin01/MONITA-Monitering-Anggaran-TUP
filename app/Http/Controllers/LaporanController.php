@@ -44,7 +44,7 @@ class LaporanController extends Controller
         ];
 
         $sheetName = $sheetMap[intval($tw)] ?? $sheetMap[1];
-        $range = "{$sheetName}!A2:J700";
+        $range = "{$sheetName}!A2:J10000";
 
         try {
             $response = $service->spreadsheets_values->get(
