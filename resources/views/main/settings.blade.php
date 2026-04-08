@@ -255,8 +255,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     showConfirmButton: false
                 });
 
-                // Update Tabel HTML secara Manual (Tanpa Reload)
-                updateTableDOM(data.data);
+                setTimeout(() => {
+        location.reload();
+    }, 1200);
                 
                 // Reset Form
                 document.getElementById('input-year').value = '';
