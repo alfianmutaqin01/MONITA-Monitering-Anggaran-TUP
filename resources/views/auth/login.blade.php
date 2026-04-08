@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="id">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
@@ -65,7 +66,9 @@
         }
 
         @keyframes glowPulse {
-            0%, 100% {
+
+            0%,
+            100% {
                 opacity: 0.05;
                 filter: drop-shadow(0 0 5px rgba(149, 25, 35, 0.2));
             }
@@ -171,18 +174,19 @@
     </style>
 </head>
 @if(config('services.recaptcha.enabled'))
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 @endif
+
 <body>
     <!-- ===== Background Animated Logos ===== -->
     <div class="bg-animated">
         @for ($i = 0; $i < 14; $i++)
             <img src="{{ asset('images/icon.png') }}" alt="Floating Logo" class="floating-logo" style="
-            top: {{ rand(5, 90) }}%;
-            left: {{ rand(5, 90) }}%;
-            animation-delay: {{ rand(0, 15) / 10 }}s;
-            animation-duration: {{ rand(15, 35) }}s;
-            width: {{ rand(60, 160) }}px;">
+                                                                        top: {{ rand(5, 90) }}%;
+                                                                        left: {{ rand(5, 90) }}%;
+                                                                        animation-delay: {{ rand(0, 15) / 10 }}s;
+                                                                        animation-duration: {{ rand(15, 35) }}s;
+                                                                        width: {{ rand(60, 160) }}px;">
         @endfor
     </div>
 
@@ -201,7 +205,8 @@
                 <!-- Right Form Section -->
                 <div class="col-lg-6 p-4 p-md-5 d-flex flex-column justify-content-center bg-white">
                     <div class="text-center mb-4">
-                        <img src="{{ asset('images/icon.png') }}" alt="Logo Telkom University" class="brand-logo" style="width: 20%">
+                        <img src="{{ asset('images/icon.png') }}" alt="Logo Telkom University" class="brand-logo"
+                            style="width: 20%">
                         <h2 class="auth-header mb-1">Selamat Datang</h2>
                         <p class="text-muted mb-4">Masukkan akun Anda untuk melanjutkan</p>
                     </div>
@@ -220,17 +225,17 @@
                         @csrf
                         <div class="form-floating mb-3">
                             <input type="text" class="form-control" id="username" name="username" placeholder="Username"
-                                   required>
+                                required>
                             <label for="username"><i class="ti ti-user me-1"></i> Username</label>
                         </div>
 
                         <div class="form-floating mb-4 position-relative">
                             <input type="password" class="form-control pe-5" id="password" name="password"
-                                   placeholder="Password" required>
+                                placeholder="Password" required>
                             <label for="password"><i class="ti ti-lock me-1"></i> Password</label>
                             <button type="button"
-                                    class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-3 bg-transparent border-0 text-muted"
-                                    onclick="togglePassword()" style="z-index: 10;">
+                                class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-3 bg-transparent border-0 text-muted"
+                                onclick="togglePassword()" style="z-index: 10;">
                                 <i class="ti ti-eye-off" id="eyeIcon"></i>
                             </button>
                         </div>
@@ -240,7 +245,28 @@
                             </div>
                         @endif
                         <button type="submit" class="btn btn-login w-100" id="loginBtn">
-                            <i class="ti ti-login me-1"></i> Masuk ke MONITA
+                            <span id="login-text">
+                                <i class="ti ti-login me-1"></i> Masuk ke MONITA
+                            </span>
+
+                            <!-- Progress bar hidden -->
+                            <div id="login-progress-container" style="display:none; margin-top:10px;">
+                                <div style="
+            width:100%;
+            background:#eee;
+            border-radius:6px;
+            overflow:hidden;
+            height:6px;
+        ">
+                                    <div id="login-progress-bar" style="
+                width:0%;
+                height:100%;
+                background:#951923;
+                transition: width 0.3s ease;
+            "></div>
+                                </div>
+                                <small id="progress-text" style="font-size:12px;">0%</small>
+                            </div>
                         </button>
                     </form>
 
@@ -254,13 +280,13 @@
 
     <script src="{{ asset('berry/assets/js/plugins/bootstrap.min.js') }}"></script>
     <script src="{{ asset('berry/assets/js/plugins/feather.min.js') }}"></script>
-    
+
     <!-- Loading Overlay Script -->
     <script src="{{ asset('js/monita/loading.js') }}"></script>
-    
+
     <script>
         feather.replace();
-        
+
         function togglePassword() {
             const password = document.getElementById('password');
             const eyeIcon = document.getElementById('eyeIcon');
@@ -278,37 +304,58 @@
         }
 
         // ========== LOADING HANDLER untuk LOGIN ==========
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const loginForm = document.getElementById('loginForm');
             const loginBtn = document.getElementById('loginBtn');
-            
+
             if (loginForm) {
-                loginForm.addEventListener('submit', function(e) {
-                    // Validasi form
+                loginForm.addEventListener('submit', function (e) {
+
                     const username = document.getElementById('username').value.trim();
                     const password = document.getElementById('password').value.trim();
-                    
-                    if (!username || !password) {
-                        return; // Biarkan validasi default
-                    }
-                    
-                    // Tampilkan loading
-                    if (window.monitaLoader) {
-                        window.monitaLoader.show();
-                    } else {
-                        // Fallback loading sederhana jika monitaLoader belum ada
-                        showSimpleLoading();
-                    }
-                    
-                    // Nonaktifkan tombol submit
+
+                    if (!username || !password) return;
+
+                    startLoginProgress();
+
                     if (loginBtn) {
                         loginBtn.disabled = true;
-                        loginBtn.innerHTML = '<i class="ti ti-login me-1"></i> Memproses...';
                     }
                 });
             }
         });
-        
+
+        function startLoginProgress() {
+            const text = document.getElementById('login-text');
+            const container = document.getElementById('login-progress-container');
+            const bar = document.getElementById('login-progress-bar');
+            const progressText = document.getElementById('progress-text');
+
+            text.innerHTML = '<i class="ti ti-loader"></i> Memproses...';
+            container.style.display = 'block';
+
+            let progress = 0;
+
+            const interval = setInterval(() => {
+
+                if (progress < 90) {
+                    if (progress < 30) progress += 5;
+                    else if (progress < 60) progress += 3;
+                    else progress += 2;
+
+                    bar.style.width = progress + "%";
+                    progressText.innerText = progress + "%";
+                }
+
+            }, 150);
+
+            // Saat pindah halaman → isi 100%
+            window.addEventListener('beforeunload', () => {
+                bar.style.width = "100%";
+                progressText.innerText = "100%";
+            });
+        }
+
         // Fallback loading sederhana
         function showSimpleLoading() {
             const overlay = document.createElement('div');
@@ -342,7 +389,7 @@
                 </div>
             `;
             document.body.appendChild(overlay);
-            
+
             // Tambahkan style untuk animasi
             const style = document.createElement('style');
             style.textContent = `
@@ -353,9 +400,9 @@
             `;
             document.head.appendChild(style);
         }
-        
+
         // Cleanup jika user kembali ke halaman login
-        window.addEventListener('pageshow', function(event) {
+        window.addEventListener('pageshow', function (event) {
             if (event.persisted) {
                 // Halaman dimuat dari cache, reset form dan loading
                 const loginBtn = document.getElementById('loginBtn');
@@ -363,13 +410,13 @@
                     loginBtn.disabled = false;
                     loginBtn.innerHTML = '<i class="ti ti-login me-1"></i> Masuk ke MONITA';
                 }
-                
+
                 // Hapus loading overlay jika ada
                 const existingOverlay = document.getElementById('login-loading-overlay');
                 if (existingOverlay) {
                     existingOverlay.remove();
                 }
-                
+
                 if (window.monitaLoader) {
                     window.monitaLoader.hide();
                 }
@@ -377,4 +424,5 @@
         });
     </script>
 </body>
+
 </html>

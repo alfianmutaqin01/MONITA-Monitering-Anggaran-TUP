@@ -31,7 +31,7 @@
                 </li>
 
                 <!-- Pengajuan Anggaran -->
-                <li class="pc-item pc-hasmenu">
+                {{-- <li class="pc-item pc-hasmenu">
                     <a href="#!" class="pc-link">
                         <span class="pc-micon"><i class="bi bi-bank"></i></span>
                         <span class="pc-mtext">Pengajuan Anggaran</span>
@@ -63,7 +63,7 @@
                         </li>
 
                     </ul>
-                </li>
+                </li> --}}
 
                 <li class="pc-item pc-hasmenu">
                     <a href="#!" class="pc-link">

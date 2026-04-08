@@ -334,7 +334,63 @@ document.addEventListener('DOMContentLoaded', function () {
                     </td>
                 </tr>
             `;
-            tableBody.insertAdjacentHTML('beforeend', newRow);
+            function updateTableDOM(data) {
+    const tableBody = document.querySelector('#spreadsheet-table tbody');
+
+    // Ambil semua data lama
+    let rowsData = [];
+
+    document.querySelectorAll('#spreadsheet-table tbody tr').forEach(row => {
+        const year = parseInt(row.dataset.year);
+        const key = row.querySelector('code')?.innerText;
+
+        rowsData.push({
+            year: year,
+            key: key,
+            element: row
+        });
+    });
+
+    // Tambahkan / update data baru
+    let found = rowsData.find(r => r.year == data.year);
+
+    if (found) {
+        found.key = data.key;
+    } else {
+        rowsData.push({
+            year: parseInt(data.year),
+            key: data.key
+        });
+    }
+
+    
+    rowsData.sort((a, b) => a.year - b.year);
+
+    
+    tableBody.innerHTML = '';
+
+    rowsData.forEach(item => {
+        const newRow = `
+            <tr data-year="${item.year}">
+                <td class="text-center">
+                    <div class="form-check d-flex justify-content-center">
+                        <input type="radio" name="active_year" class="form-check-input radio-active" 
+                            data-year="${item.year}" data-key="${item.key}">
+                    </div>
+                </td>
+                <td class="text-dark">${item.year}</td>
+                <td><code class="text-dark">${item.key}</code></td>
+                <td>
+                    <a href="https://docs.google.com/spreadsheets/d/${item.key}" target="_blank"
+                        class="btn btn-sm btn-outline-secondary">
+                        Lihat Spreadsheet
+                    </a>
+                </td>
+            </tr>
+        `;
+        tableBody.insertAdjacentHTML('beforeend', newRow);
+    });
+}
         }
     }
 

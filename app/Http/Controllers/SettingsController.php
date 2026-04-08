@@ -76,6 +76,7 @@ class SettingsController extends Controller
         if (!empty($matches[1])) {
             foreach ($matches[1] as $i => $year) {
                 $sheetYears[$year] = trim($matches[2][$i], '"');
+                ksort($sheetYears);
             }
         }
         
